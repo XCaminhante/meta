@@ -1,17 +1,16 @@
 META-II for C
-by Long Nguyen
 
 This project is based on the paper META-II by Val Schorre from 1964.
 
 META-II is written in itself so it needs to be bootstrapped from
-a C implementation in bootstrap.c.
+a C implementation.
 
 To build,
 
-gcc -Wall -o bin/boot bootstrap.c
-./bin/boot meta.txt bin/meta.c
-gcc -Wall -o bin/meta bin/meta.c
+gcc -Wall meta.c -o boot
+./boot meta.txt meta2.c
+gcc -Wall -o meta meta2.c
 
 The original version of META-II only allowed productions to emit
 arbitrary text or the last recognized token.
-This version is ZASHQUARED.
+This version isn't ZASHQUARED.
