@@ -5,13 +5,11 @@
 
 char *output_name = NULL, *token = NULL, *source = NULL;
 FILE *output = NULL;
-int pos = 0, pos_last_line = 0, line = 1, test_flag = 0, ignore_whitespace = 0;
-
+int pos = 0, pos_last_line = 0, line = 1, test_flag = 0, ignore_whitespace = 0, input_len = 0;
 
 void skip_whitespace(void) {
-  while (source[pos] == '\x20' || source[pos] == '\t' ||
-      source[pos] == '\r' || source[pos] == '\n') {
-    // increment line counter when new line reached
+  while ((source[pos] == '\x20' || source[pos] == '\t' ||
+  source[pos] == '\r' || source[pos] == '\n') && pos < input_len) {
     if (source[pos] == '\n') {
       pos_last_line = pos;
       line++;
@@ -28,10 +26,8 @@ void make_token(int start_pos) {
   memcpy(token, &source[start_pos], length);
 }
 
-// emits the currently recognized token
 void emit_token (int quote) {
   int i;
-  // strings are converted to C format
   if (token[0] == '\'') {
     if (quote) fprintf(output, "\"");
     for (i = 1; token[i+1] != '\0'; i++) {
@@ -53,7 +49,6 @@ void emit_token (int quote) {
     if (quote) fprintf(output, "\"");
     return;
   }
-  // if token is not a string, emit as-is
   fprintf(output, "%s", token);
 }
 
@@ -66,27 +61,23 @@ void read_literal(const char *literal) {
   int i;
 
   if (!ignore_whitespace) skip_whitespace();
-  // compare source with the literal
   entry_pos = pos;
   i = 0;
-  while (source[pos] != '\0' && literal[i] != '\0' &&
-      source[pos] == literal[i]) {
+  while (pos < input_len && literal[i] != '\0' && source[pos] == literal[i]) {
     pos++;
     i++;
   }
-  // if the end of the literal has been reached, comparison successful
   if (literal[i] == '\0') {
     test_flag = 1;
     make_token(entry_pos);
   } else {
-    // reset position
     pos = entry_pos;
     test_flag = 0;
   }
 }
 
 void read_any_between (char first, char last) {
-  if (source[pos] >= first && source[pos] <= last) {
+  if (pos < input_len && source[pos] >= first && source[pos] <= last) {
     pos++;
     test_flag=1;
     make_token(pos-1);
@@ -96,7 +87,7 @@ void read_any_between (char first, char last) {
 }
 
 void read_any_but (char exception) {
-  if (source[pos] != exception) {
+  if (pos < input_len && source[pos] != exception) {
     pos++;
     test_flag=1;
     make_token(pos-1);
@@ -106,7 +97,7 @@ void read_any_but (char exception) {
 }
 
 void read_char (char which) {
-  if (source[pos] == which) {
+  if (pos < input_len && source[pos] == which) {
     pos++;
     test_flag=1;
     make_token(pos-1);
@@ -117,70 +108,57 @@ void read_char (char which) {
 
 void read_id(void) {
   int entry_pos;
-
   if (!ignore_whitespace) skip_whitespace();
-  // recognize initial alphabetic character
   entry_pos = pos;
-  if (('A' <= source[pos] && source[pos] <= 'Z') ||
-      ('a' <= source[pos] && source[pos] <= 'z')) {
+  if (pos < input_len &&
+  (('A' <= source[pos] && source[pos] <= 'Z') ||
+  ('a' <= source[pos] && source[pos] <= 'z'))) {
     pos++;
     test_flag = 1;
   } else {
     test_flag = 0;
     return;
   }
-  // recognize alphanumeric characters
-  while (('A' <= source[pos] && source[pos] <= 'Z') ||
-      ('a' <= source[pos] && source[pos] <= 'z') ||
-      ('0' <= source[pos] && source[pos] <= '9') || source[pos] == '_') {
+  while (pos < input_len &&
+  (('A' <= source[pos] && source[pos] <= 'Z') ||
+  ('a' <= source[pos] && source[pos] <= 'z') ||
+  ('0' <= source[pos] && source[pos] <= '9') || source[pos] == '_')) {
     pos++;
   }
-  // recognition successful, copy into token
   make_token(entry_pos);
 }
 
 void read_number(void) {
   int entry_pos;
-
   if (!ignore_whitespace) skip_whitespace();
-  // recognize optional negative sign
   entry_pos = pos;
-  if (source[pos] == '-') {
+  if (pos < input_len && source[pos] == '-') {
     pos++;
   }
-  // recognize initial numeric character
-  if ('0' <= source[pos] && source[pos] <= '9') {
+  if (pos < input_len && '0' <= source[pos] && source[pos] <= '9') {
     pos++;
     test_flag = 1;
   } else {
     test_flag = 0;
     return;
   }
-  // recognize subsequent numeric characters
-  while ('0' <= source[pos] && source[pos] <= '9') {
+  while (pos < input_len && '0' <= source[pos] && source[pos] <= '9') {
     pos++;
   }
-  // recognition successful, copy into token
   make_token(entry_pos);
 }
 
 void read_string(void) {
   int entry_pos;
-
   if (!ignore_whitespace) skip_whitespace();
-  // recognize initial single quote
   entry_pos = pos;
-  if (source[pos] == '\'') {
+  if (pos < input_len && source[pos] == '\'') {
     pos++;
-    // test_flag is not set as recognition can still fail
   } else {
     test_flag = 0;
     return;
   }
-
-  // recognize contents
-  while (source[pos] != '\0' && source[pos] != '\'') {
-    // increment line counter when new line reached
+  while (pos < input_len && source[pos] != '\'') {
     switch (source[pos]) {
     case '\n':
       pos_last_line = pos;
@@ -191,14 +169,11 @@ void read_string(void) {
     }
     pos++;
   }
-
-  // recognize final single quote
   if (source[pos] == '\'') {
     pos++;
     test_flag = 1;
     make_token(entry_pos);
-  } else if (source[pos] == '\0') {
-    // reset position
+  } else if (pos < input_len) {
     pos = entry_pos;
     test_flag = 0;
   }
@@ -208,7 +183,6 @@ void error_if_false(void) {
   if (!test_flag) {
     fprintf(stderr, "error in line:column %i:%i at token %s\n", line, pos-pos_last_line, token);
     fclose(output);
-    // delete the output file
     remove(output_name);
     free(source);
     free(token);
@@ -222,7 +196,8 @@ void meta_exp1(void);
 //~ int main (int argc, char *argv[]) {
   //~ source = malloc(65535+1);
   //~ int chars = read(0,source,65535);
-  //~ source[chars-1] = '\0';
+  //~ source[chars] = '\0';
+  //~ input_len = chars;
   //~ output = stdout;
   //~ token = malloc(1);
   //~ token[0] = '\0';
