@@ -95,8 +95,8 @@ void read_any_between (char first, char last) {
   test_flag=0;
 }
 
-void read_any_but (char exception) {
-  if (pos < input_len && source[pos] != exception) {
+void read_any_but (char first, char last) {
+  if (pos < input_len && (source[pos] < first || source[pos] > last)) {
     pos++;
     test_flag=1;
     make_token(pos-1);
@@ -105,8 +105,18 @@ void read_any_but (char exception) {
   test_flag=0;
 }
 
-void read_char (char which) {
+void read_char_eq (char which) {
   if (pos < input_len && source[pos] == which) {
+    pos++;
+    test_flag=1;
+    make_token(pos-1);
+    return;
+  }
+  test_flag=0;
+}
+
+void read_char_neq (char which) {
+  if (pos < input_len && source[pos] != which) {
     pos++;
     test_flag=1;
     make_token(pos-1);

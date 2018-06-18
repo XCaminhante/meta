@@ -18,8 +18,9 @@ user_token_delim = user_token_start
                  | user_token_end;
 
 user_tokens = '.any(' .number {'read_any_between(' $} ',' {','} .number {$} ')' {');'}
-            | '.but(' .number {'read_any_but(' $} ')' {');'}
-            | '.eq(' .number {'read_char(' $} ')' {');'};
+            | '.but(' .number {'read_any_but(' $} ',' {','} .number {$} ')' {');'}
+            | '.eq(' .number {'read_char_eq(' $} ')' {');'}
+            | '.neq(' .number {'read_char_neq(' $} ')' {');'};
 
 builtin_tokens = '.id' {'read_id();'}
                | '.number' {'read_number();'}
