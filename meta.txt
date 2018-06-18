@@ -12,8 +12,8 @@ space = '.space' {'skip_whitespace();'}
 output = '{' *( .string {'emit(' $ ');'} | arg ) '}'
        | '<' *( .string {%}  | arg ) '>';
 
-user_token_start = '.token' {'user_token=pos;'};
-user_token_end = '.deftoken' {'make_token(user_token);'};
+user_token_start = '.token' {'user_token=pos;defining_utoken=1;'};
+user_token_end = '.deftoken' {'defining_utoken=0;make_token(user_token);'};
 user_token_delim = user_token_start
                  | user_token_end;
 
@@ -96,7 +96,7 @@ int main (int argc, char *argv[]) {'
   'return 0;'
 '}'}     | '.finalize' *( .string <%> ) ';';
 
-program = '.syntax' .id {'#include "support.h"\nint user_token=0;'}
+program = '.syntax' .id {'#include "support.h"\n'}
           initialize
           *stat
           finalize;

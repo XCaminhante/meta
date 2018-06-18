@@ -3,11 +3,20 @@
 #include <string.h>
 #include <unistd.h>
 
-char *output_name = NULL, *token = NULL, *source = NULL;
+char *output_name = NULL,
+    *token = NULL,
+    *source = NULL;
 FILE *output = NULL;
-int pos = 0, pos_last_line = 0, line = 1, test_flag = 0, ignore_whitespace = 0, input_len = 0;
+int pos = 0,
+    pos_last_line = 0,
+    line = 1,
+    test_flag = 0,
+    ignore_whitespace = 0,
+    input_len = 0,
+    user_token=0,
+    defining_utoken = 0;
 
-void skip_whitespace(void) {
+void skip_whitespace (void) {
   while ((source[pos] == '\x20' || source[pos] == '\t' ||
   source[pos] == '\r' || source[pos] == '\n') && pos < input_len) {
     if (source[pos] == '\n') {
@@ -18,7 +27,8 @@ void skip_whitespace(void) {
   }
 }
 
-void make_token(int start_pos) {
+void make_token (int start_pos) {
+  if (defining_utoken) return;
   int length = pos - start_pos;
   free(token);
   token = malloc(length + 1);
@@ -52,14 +62,13 @@ void emit_token (int quote) {
   fprintf(output, "%s", token);
 }
 
-void emit(const char *str) {
+void emit (const char *str) {
   fprintf(output, "%s", str);
 }
 
-void read_literal(const char *literal) {
+void read_literal (const char *literal) {
   int entry_pos;
   int i;
-
   if (!ignore_whitespace) skip_whitespace();
   entry_pos = pos;
   i = 0;
@@ -106,7 +115,7 @@ void read_char (char which) {
   test_flag=0;
 }
 
-void read_id(void) {
+void read_id (void) {
   int entry_pos;
   if (!ignore_whitespace) skip_whitespace();
   entry_pos = pos;
@@ -128,7 +137,7 @@ void read_id(void) {
   make_token(entry_pos);
 }
 
-void read_number(void) {
+void read_number (void) {
   int entry_pos;
   if (!ignore_whitespace) skip_whitespace();
   entry_pos = pos;
@@ -148,7 +157,7 @@ void read_number(void) {
   make_token(entry_pos);
 }
 
-void read_string(void) {
+void read_string (void) {
   int entry_pos;
   if (!ignore_whitespace) skip_whitespace();
   entry_pos = pos;
@@ -179,7 +188,7 @@ void read_string(void) {
   }
 }
 
-void error_if_false(void) {
+void error_if_false (void) {
   if (!test_flag) {
     fprintf(stderr, "error in line:column %i:%i at token %s\n", line, pos-pos_last_line, token);
     fclose(output);
@@ -190,8 +199,8 @@ void error_if_false(void) {
   }
 }
 
-void meta_program(void);
-void meta_exp1(void);
+void meta_program (void);
+void meta_exp1 (void);
 
 //~ int main (int argc, char *argv[]) {
   //~ source = malloc(65535+1);
