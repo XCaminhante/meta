@@ -12,7 +12,6 @@ arg = '$' {'emit_token(1);'}
     | 'cr' {"emit_char('\\r');"}
     | .id {'emit('$');'}
     | xchar {"emit_char('\\x" $ "');"};
-
 output = '{' *(.string {'emit('$');'} | arg) '}'
        | '<' *(.string {%} | arg) '>';
 space_control = '\\' {'ignore_whitespace=true;'}
@@ -23,18 +22,15 @@ user_token_delim = '.token' {'user_token=pos;'}
                  | '.unmute' {'mute=false;'}
                  | '.capture' {'capture=calloc(1,1);'}
                  | '.defcapture' {'capture_to_token();'};
-
 user_token_arg = .number {$}
                | xcharp
                | "'" \ {%} .any(32,126) .putc "'" / {%}
                | '"'\ "'" '"' / {"'\\''"};
-
 user_tokens = '.any(' {'read_any_between('} user_token_arg ','{','} user_token_arg ')'{');'}
             | '.but(' {'read_any_but('} user_token_arg ','{','} user_token_arg ')'{');'}
             | '.eq(' {'read_char_eq('} user_token_arg ')'{');'}
             | '.neq(' {'read_char_neq('} user_token_arg ')'{');'}
             | '.putc' {'emit_char(source[pos-1]);'};
-
 errors = '.error(' .string {'error('$');'} ')'
        | '.warn(' .string {'warning('$');'} ')'
        | '.expect(' .string {'expecting='$';unexpected=NULL;'} ')'
@@ -44,7 +40,6 @@ errors = '.error(' .string {'error('$');'} ')'
        | '.noreason' {'reason=NULL;'}
        | '.failure' {'test_flag=false;exit_parse_rule();return;'}
        | '.success' {'test_flag=true;exit_parse_rule();return;'};
-
 user_vars = '.bind(' .id {'char *'$'=token;token=NULL;'} ')'
           | '.var(' .id {'char *'$'=NULL;'} ')'
           | '.set(' .id {'if('$')free('$');'$'=token;token=NULL;'} ')'
@@ -64,9 +59,7 @@ builtin_tokens = '.id' {'read_id();'}
 %             'if(!expAdone)do{'expA'}while(0);'
 %             'if(!expBdone)do{'expB'}while(0);'
 %             '}while(0);test_flag=true;'};
-
 option_capture = '^' .capture exp3 .defcapture;
-
 multiple_optionals =
   <'char *opts_stack[2000];int last_opt=2;char idx[4];'>
   option_capture <'opts_stack[0]=token;token=NULL;'>
@@ -96,20 +89,17 @@ exp3 = .id {grammar_name'_'$'();'}
      | '*' {'do{'} exp3 {'}while(test_flag);test_flag=true;'}
      | '!' {'do{'} exp3 {'}while(0);test_flag=!test_flag;'}
      | multiple_optionals;
-
 dont_use_flag = user_token_delim
               | output
               | space_control
               | errors
               | user_vars;
-
 exp2 = *dont_use_flag
        ( exp3 {'if(test_flag){'}
          *( dont_use_flag | exp3 {'error_if_false();'} )
          {'}'}
        | .e);
-
-exp1 = 'continue' {'test_flag=true;return;'}
+exp1 = 'continue' .success
      | {'do{'}
        .expect('a sequence of expressions') exp2
        *('|' {'if(test_flag)break;'} .expect('a sequence of expressions') exp2)

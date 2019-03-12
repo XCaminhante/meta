@@ -144,8 +144,8 @@ void read_id () {
   if (!ignore_whitespace) skip_whitespace();
   entry_pos=pos;
   if (pos<input_len &&
-  (('A' <= source[pos] && source[pos] <= 'Z') ||
-  ('a' <= source[pos] && source[pos] <= 'z'))) {
+  ( ('A' <= source[pos] && source[pos] <= 'Z') ||
+    ('a' <= source[pos] && source[pos] <= 'z') || source[pos] == '_')) {
     pos++;
     test_flag=true;
   } else {
