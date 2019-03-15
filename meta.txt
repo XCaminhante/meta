@@ -1,11 +1,15 @@
 .syntax meta;
+% MetaG metacompiler grammar
 .initialize
   "static void meta_exp1(void);\n"
   "static void meta_exp3(void);\n"
   "char *grammar_name;\n";
+% Token directives
+%% C hex chars
 hex = .any('0','9')|.any('a','f')|.any('A','F');
 xchar = '\\x' .token hex hex .deftoken;
 xcharp = '\\x' {"'"%} hex .putc hex .putc {"'"};
+%% Text emitting
 arg = '$' {'emit_token(1);'}
     | '%' {'emit_token(0);'}
     | ('lf'|'nl') {"emit_char('\\n');"}
@@ -14,14 +18,18 @@ arg = '$' {'emit_token(1);'}
     | xchar {"emit_char('\\x" $ "');"};
 output = '{' *(.string {'emit('$');'} | arg) '}'
        | '<' *(.string {%} | arg) '>';
+%% Whitespace skipping mode for builtin tokens
 space_control = '\\' {'ignore_whitespace=true;'}
               | '/' {'ignore_whitespace=false;'};
+%% Special tokens
+%%% Macro token and emitted code capture
 user_token_delim = '.token' {'start_user_token();'}
                  | '.deftoken' {'end_user_token();'}
                  | '.mute' {'mute=true;'}
                  | '.unmute' {'mute=false;'}
                  | '.capture' {'capture=calloc(1,1);'}
                  | '.defcapture' {'capture_to_token();'};
+%%% Byte-by-byte user defined tokens
 user_token_arg = .number {$}
                | xcharp
                | "'" \ {%} .any(32,126) .putc "'" / {%}
@@ -31,6 +39,7 @@ user_tokens = '.any(' {'read_any_between('} user_token_arg ','{','} user_token_a
             | '.eq(' {'read_char_eq('} user_token_arg ')'{');'}
             | '.neq(' {'read_char_neq('} user_token_arg ')'{');'}
             | '.putc' {'emit_char(source[pos-1]);'};
+%%% Error handling
 errors = '.error(' .string {'error('$');'} ')'
        | '.warn(' .string {'warning('$');'} ')'
        | '.expect(' .string {'expecting='$';unexpected=NULL;'} ')'
@@ -40,6 +49,8 @@ errors = '.error(' .string {'error('$');'} ')'
        | '.noreason' {'reason=NULL;'}
        | '.failure' {'test_flag=false;exit_parse_rule();return;'}
        | '.success' {'test_flag=true;exit_parse_rule();return;'};
+%%% Local rule variables
+%%% You can define globals manually at the ".initialize" directive
 user_vars = '.bind(' .id {'char *'$'=token;token=NULL;'} ')'
           | '.var(' .id {'char *'$'=NULL;'} ')'
           | '.set(' .id {'if('$')free('$');'$'=token;token=NULL;'} ')'
@@ -47,18 +58,14 @@ user_vars = '.bind(' .id {'char *'$'=token;token=NULL;'} ')'
           | '.clear(' .id {'if('$'){free('$');'$'=NULL;}'} ')'
           | '.emit(' .id {'emit('$');'} ')'
           | '.ifte(' .id {'if('$')emit('$');else emit('} ',' .string {$');'} ')';
+%% Builtin tokens
+%% ".space" directive is not affected by whitespace skipping mode
 builtin_tokens = '.id' {'read_id();'}
                | '.number' {'read_number();'}
                | '.string' {'read_string();'}
                | '.space' {'skip_whitespace();'};
-%optionals = '^' .capture exp3 .defcapture .bind(expA)
-%            '^' .capture exp3 .defcapture .bind(expB)
-%            {'do{bool expAdone=false,expBdone=false;'
-%             'do{'expA'}while(0);expAdone=test_flag;'
-%             'do{'expB'}while(0);expBdone=test_flag;'
-%             'if(!expAdone)do{'expA'}while(0);'
-%             'if(!expBdone)do{'expB'}while(0);'
-%             '}while(0);test_flag=true;'};
+% Expressions
+%% Optional, out-of-order rules
 option_capture = '^' .capture exp3 .defcapture;
 multiple_optionals =
   <'char *opts_stack[2000];int last_opt=2;char idx[4];'>
@@ -80,6 +87,7 @@ multiple_optionals =
     <'}'>
   {'}while(0);test_flag=true;'}
   ;
+%% Second level expressions (common directives level)
 exp3 = .id {grammar_name'_'$'();'}
      | .string {'read_literal('$');'}
      | builtin_tokens
@@ -104,6 +112,7 @@ exp1 = 'continue' .success
        .expect('a sequence of expressions') exp2
        *('|' {'if(test_flag)break;'} .expect('a sequence of expressions') exp2)
        {'}while(0);'};
+%% First level expressions
 stat = '%' *.neq(10)
      | .expect('a grammar rule identifier') .id
          {'static void 'grammar_name'_'$'(void)'
@@ -112,7 +121,7 @@ stat = '%' *.neq(10)
        .expect('a sequence of expressions') exp1
        .expect('a ; terminator') ';'
        {'exit_parse_rule();}\n'};
-initialize = '%' *.neq(10)
+initialize = '%' *.neq(10) initialize
            | '.initialize'
              .expect('a sequence of code instructions (strings)') .string {%} *( .string {%} )
              .expect('a ; terminator') ';'
@@ -139,5 +148,4 @@ program = '.syntax'
           initialize
           *stat
           finalize;
-
 .end program;
