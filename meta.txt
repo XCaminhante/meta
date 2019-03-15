@@ -16,8 +16,8 @@ output = '{' *(.string {'emit('$');'} | arg) '}'
        | '<' *(.string {%} | arg) '>';
 space_control = '\\' {'ignore_whitespace=true;'}
               | '/' {'ignore_whitespace=false;'};
-user_token_delim = '.token' {'user_token=pos;'}
-                 | '.deftoken' {'make_token(user_token);'}
+user_token_delim = '.token' {'start_user_token();'}
+                 | '.deftoken' {'end_user_token();'}
                  | '.mute' {'mute=true;'}
                  | '.unmute' {'mute=false;'}
                  | '.capture' {'capture=calloc(1,1);'}
@@ -112,13 +112,11 @@ stat = '%' *.neq(10)
        .expect('a sequence of expressions') exp1
        .expect('a ; terminator') ';'
        {'exit_parse_rule();}\n'};
-
 initialize = '%' *.neq(10)
            | '.initialize'
              .expect('a sequence of code instructions (strings)') .string {%} *( .string {%} )
              .expect('a ; terminator') ';'
            | .e;
-
 finalize = .expect('a compiler mode directive (.end,.multiple,.test,.finalize)')
            ( '.end'
              .expect('a grammar rule identifier') .id

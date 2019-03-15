@@ -7,18 +7,24 @@
 #include <unistd.h>
 #include <inttypes.h>
 #include <stdbool.h>
-static long user_token=0,
-  token_line=0, token_column=0,
-  bytes_written=0,
-  pos=0, pos_last_line=0, line=1,
-  input_len=0;
+
+#define STACK_DEPTH 20000
+
+static long user_token_stack[STACK_DEPTH];
+static long utoken_stack_top=0;
+static long token_line=0, token_column=0,
+  bytes_written=0,input_len=0,
+  pos=0,pos_last_line=0,line=1;
 static FILE *output;
 static char *source=NULL, *token=NULL, *capture=NULL,
             *input_name=NULL, *output_name=NULL;
 static bool test_flag=false, ignore_whitespace=false, mute=false;
-static char *parse_stack[10000];
+static char *parse_stack[STACK_DEPTH];
 static long parse_stack_top=0;
 static char *expecting=NULL, *unexpected=NULL, *reason=NULL;
+
+static void make_token (int start_pos);
+
 static void start_line (void) {
   pos_last_line=pos+1;
   line++;
@@ -35,6 +41,12 @@ static void enter_parse_rule (char *parse_rule) {
 }
 static void exit_parse_rule () {
   parse_stack_top--;
+}
+void start_user_token () {
+  user_token_stack[utoken_stack_top++]=pos;
+}
+void end_user_token () {
+  make_token(--utoken_stack_top);
 }
 static bool is_space (char c) {
   return (c==' ' || c=='\t' || c=='\r' || c=='\n');
@@ -278,6 +290,7 @@ static void initialize_parser () {
     capture=NULL;
   }
   parse_stack_top=0;
+  utoken_stack_top=0;
   pos=0;
   pos_last_line=0;
   line=1;
@@ -285,7 +298,6 @@ static void initialize_parser () {
   ignore_whitespace=false;
   mute=false;
   input_len=0;
-  user_token=0;
   token_line=0;
   token_column=0;
   bytes_written=0;
