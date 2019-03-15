@@ -19,8 +19,8 @@ hex = .any('0','9')|.any('a','f')|.any('A','F');
 xchar = '\\x' .token hex hex .deftoken;
 xcharp = '\\x' {"'"%} hex .putc hex .putc {"'"};
 %% Text emitting
-arg = '$' {'emit_token(1);'}
-    | '%' {'emit_token(0);'}
+arg = '$' {'emit_token(true);'}
+    | '%' {'emit_token(false);'}
     | ('lf'|'nl') {"emit_char('\\n');"}
     | 'cr' {"emit_char('\\r');"}
     | var_descr {'emit('$');'}
@@ -62,7 +62,7 @@ errors = '.error(' .string {'error('$');'} ')'
 %%% You can define globals manually at the ".initialize" directive
 user_vars = '.bind(' var_descr {'char '$'=token;token=NULL;'} ')'
           | '.var(' var_descr {'char '$'={0};'} ')'
-          | '.int(' var_descr {'long '$';'} ')'
+          | '.long(' var_descr {'long '$';'} ')'
           | '.ltoa(' var_descr {'sprintf('$} ',' var_descr {',"%d",'$');'} ')'
           | '.set(' var_descr {$'=token;token=NULL;'} ')'
           | '.concat(' var_descr {'concatstr('$',token);'} ')'
