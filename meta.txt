@@ -28,7 +28,7 @@ user_token_delim = '.token' {'start_user_token();'}
                  | '.deftoken' {'end_user_token();'}
                  | '.mute' {'mute=true;'}
                  | '.unmute' {'mute=false;'}
-                 | '.capture' {'capture=calloc(1,1);'}
+                 | '.capture' {'if(capture)free(capture);capture=calloc(1,1);'}
                  | '.defcapture' {'capture_to_token();'};
 %%% Byte-by-byte user defined tokens
 user_token_arg = .number {$}

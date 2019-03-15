@@ -12,15 +12,16 @@
 
 static long user_token_stack[STACK_DEPTH];
 static long utoken_stack_top=0;
+static char *parse_stack[STACK_DEPTH];
+static long parse_stack_top=0;
+
 static long token_line=0, token_column=0,
-  bytes_written=0,input_len=0,
-  pos=0,pos_last_line=0,line=1;
+            bytes_written=0,input_len=0,
+            pos=0,pos_last_line=0,line=1;
 static FILE *output;
 static char *source=NULL, *token=NULL, *capture=NULL,
             *input_name=NULL, *output_name=NULL;
 static bool test_flag=false, ignore_whitespace=false, mute=false;
-static char *parse_stack[STACK_DEPTH];
-static long parse_stack_top=0;
 static char *expecting=NULL, *unexpected=NULL, *reason=NULL;
 
 static void make_token (int start_pos);
