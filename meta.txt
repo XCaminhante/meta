@@ -71,11 +71,11 @@ builtin_tokens = '.id' {'read_id();'}
 %% Optional, out-of-order rules
 option_capture = '^' .capture exp3 .defcapture;
 multiple_optionals =
-  <'char *opts_stack[2000];int last_opt=2;char idx[4];'>
+  <'char *opts_stack[STACK_DEPTH];int last_opt=2;char idx[4];'>
   option_capture <'opts_stack[0]=token;token=NULL;'>
   option_capture <'opts_stack[1]=token;token=NULL;'>
   *( option_capture
-     <'if(last_opt==2000-1){'> .error('excess of optionals') <'}'
+     <'if(last_opt==STACK_DEPTH-1){'> .error('excess of optionals') <'}'
       'opts_stack[last_opt++]=token;token=NULL;'> )
   <'sprintf(idx,"%d",last_opt);'>
   {'do{bool expr_results['idx'];'}
