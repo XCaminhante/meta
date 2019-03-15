@@ -24,6 +24,7 @@ space_control = '\\' {'ignore_whitespace=true;'}
 %% Special tokens
 %%% Macro token and emitted code capture
 user_token_delim = '.token' {'start_user_token();'}
+                 | '.adjtoken' {'user_token_stack[utoken_stack_top-1]=pos-strlen(token);'}
                  | '.deftoken' {'end_user_token();'}
                  | '.mute' {'mute=true;'}
                  | '.unmute' {'mute=false;'}
@@ -32,8 +33,7 @@ user_token_delim = '.token' {'start_user_token();'}
 %%% Byte-by-byte user defined tokens
 user_token_arg = .number {$}
                | xcharp
-               | "'" \ {%} .any(32,126) .putc "'" / {%}
-               | '"'\ "'" '"' / {"'\\''"};
+               | .eq(39) .putc (.eq(92) {"\\\\"} | .eq(39) {"\\'"} | .any(32,126) .putc ) .eq(39) .putc;
 user_tokens = '.any(' {'read_any_between('} user_token_arg ','{','} user_token_arg ')'{');'}
             | '.but(' {'read_any_but('} user_token_arg ','{','} user_token_arg ')'{');'}
             | '.eq(' {'read_char_eq('} user_token_arg ')'{');'}
@@ -52,7 +52,10 @@ errors = '.error(' .string {'error('$');'} ')'
 %%% Local rule variables
 %%% You can define globals manually at the ".initialize" directive
 user_vars = '.bind(' .id {'char *'$'=token;token=NULL;'} ')'
-          | '.var(' .id {'char *'$'=NULL;'} ')'
+          | '.var(' .id .bind(name)
+            ( ')' {'char *'name'=NULL;'}
+            | '[' .number {'char 'name'['$'];'} ']' ')')
+          | '.ltoa(' .id {'sprintf('$} ',' .id {',"%d",'$');'} ')'
           | '.set(' .id {'if('$')free('$');'$'=token;token=NULL;'} ')'
           | '.concat(' .id {'concatstr('$',token);free(token);token=NULL;'} ')'
           | '.clear(' .id {'if('$'){free('$');'$'=NULL;}'} ')'

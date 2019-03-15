@@ -46,7 +46,7 @@ void start_user_token () {
   user_token_stack[utoken_stack_top++]=pos;
 }
 void end_user_token () {
-  make_token(--utoken_stack_top);
+  make_token(user_token_stack[--utoken_stack_top]);
 }
 static bool is_space (char c) {
   return (c==' ' || c=='\t' || c=='\r' || c=='\n');
