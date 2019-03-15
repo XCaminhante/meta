@@ -119,7 +119,7 @@ exp1 = 'continue' .success
 stat = '%' *.neq(10)
      | .expect('a grammar rule identifier') .id
          {'static void 'grammar_name'_'$'(void)'
-          '{enter_parse_rule("'$'");'}
+          '{enter_parse_rule("'grammar_name'_'$'");'}
        .expect('an equal sign') '='
        .expect('a sequence of expressions') exp1
        .expect('a ; terminator') ';'
