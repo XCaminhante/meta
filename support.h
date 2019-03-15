@@ -72,6 +72,7 @@ static void make_token (int start_pos) {
   memcpy(token, &source[start_pos], length);
 }
 void capture_to_token () {
+  if (!capture) return;
   if (token) free(token);
   token=capture;
   capture=NULL;
