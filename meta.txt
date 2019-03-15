@@ -106,9 +106,9 @@ dont_use_flag = user_token_delim
               | errors
               | user_vars;
 exp2 = *dont_use_flag
-       ( exp3 {'if(test_flag){'}
+       ( exp3 ( !(';'|'|'|')') {'if(test_flag){'}
          *( dont_use_flag | exp3 {'error_if_false();'} )
-         {'}'}
+         {'}'} | .e )
        | .e);
 exp1 = 'continue' .success
      | {'do{'}
