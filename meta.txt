@@ -77,13 +77,13 @@ multiple_optionals =
   *( option_capture
      <'if(last_opt==STACK_DEPTH-1){'> .error('excess of optionals') <'}'
       'opts_stack[last_opt++]=token;token=NULL;'> )
-  <'sprintf(idx,"%d",last_opt);'>
+  .ltoa(idx,last_opt)
   {'do{bool expr_results['idx'];'}
-    <'for (int a=0; a<last_opt; a++){ sprintf(idx,"%d",a);'>
+    <'for (int a=0; a<last_opt; a++){'> .ltoa(idx,a)
       {'do{'} <'emit(opts_stack[a]);'> {'}while(0);'
        'expr_results['idx']=test_flag;'}
     <'}'>
-    <'for(int a=0;a<last_opt;a++){sprintf(idx,"%d",a);'>
+    <'for(int a=0;a<last_opt;a++){'> .ltoa(idx,a)
       {'if(!expr_results['idx'])do{'}
         <'emit(opts_stack[a]);free(opts_stack[a]);'>
       {'}while(0);'}
