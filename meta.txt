@@ -51,16 +51,24 @@ errors = '.error(' .string {'error('$');'} ')'
        | '.success' {'test_flag=true;exit_parse_rule();return;'};
 %%% Local rule variables
 %%% You can define globals manually at the ".initialize" directive
-user_vars = '.bind(' .id {'char *'$'=token;token=NULL;'} ')'
-          | '.var(' .id .bind(name)
-            ( ')' {'char *'name'=NULL;'}
-            | '[' .number {'char 'name'['$'];'} ']' ')')
-          | '.ltoa(' .id {'sprintf('$} ',' .id {',"%d",'$');'} ')'
-          | '.set(' .id {'if('$')free('$');'$'=token;token=NULL;'} ')'
-          | '.concat(' .id {'concatstr('$',token);free(token);token=NULL;'} ')'
-          | '.clear(' .id {'if('$'){free('$');'$'=NULL;}'} ')'
-          | '.emit(' .id {'emit('$');'} ')'
-          | '.ifte(' .id {'if('$')emit('$');else emit('} ',' .string {$');'} ')';
+var_descr = .capture
+            ('*' {$} | .e) .id {$}
+            (!(')'|',') '[' {$}
+              ('++'{$}|'--'{$}|.e)
+              (.number|.id) {$}
+              ('++'{$}|'--'{$}|.e)
+            ']' {$} | .e)
+            .defcapture;
+
+user_vars = '.bind(' var_descr {'char '$'=token;token=NULL;'} ')'
+          | '.var(' var_descr {'char '$'={0};'} ')'
+          | '.int(' var_descr {'long '$';'} ')'
+          | '.ltoa(' var_descr {'sprintf('$} ',' var_descr {',"%d",'$');'} ')'
+          | '.set(' var_descr {$'=token;token=NULL;'} ')'
+          | '.concat(' var_descr {'concatstr('$',token);free(token);token=NULL;'} ')'
+          | '.clear(' var_descr {'if('$'){free('$');'$'=NULL;}'} ')'
+          | '.emit(' var_descr {'emit('$');'} ')'
+          | '.ifte(' var_descr {'if('$')emit('$');else emit('} ',' .string {$');'} ')';
 %% Builtin tokens
 %% ".space" directive is not affected by whitespace skipping mode
 builtin_tokens = '.id' {'read_id();'}
@@ -71,12 +79,12 @@ builtin_tokens = '.id' {'read_id();'}
 %% Optional, out-of-order rules
 option_capture = '^' .capture exp3 .defcapture;
 multiple_optionals =
-  <'char *opts_stack[STACK_DEPTH];int last_opt=2;char idx[4];'>
+  <'char *opts_stack[STACK_DEPTH]; int last_opt=2;'> .var(idx[4])
   option_capture <'opts_stack[0]=token;token=NULL;'>
   option_capture <'opts_stack[1]=token;token=NULL;'>
   *( option_capture
-     <'if(last_opt==STACK_DEPTH-1){'> .error('excess of optionals') <'}'
-      'opts_stack[last_opt++]=token;token=NULL;'> )
+     <'if(last_opt==STACK_DEPTH-1){'> .error('excess of optionals') <'}'>
+      .set(opts_stack[last_opt++]) )
   .ltoa(idx,last_opt)
   {'do{bool expr_results['idx'];'}
     <'for (int a=0; a<last_opt; a++){'> .ltoa(idx,a)
@@ -134,12 +142,12 @@ finalize = .expect('a compiler mode directive (.end,.multiple,.test,.finalize)')
              .expect('a grammar rule identifier') .id
              {'int main(int argc, char *argv[]){return first_into_second(argc,argv,'grammar_name'_'$');}\n'}
            | '.multiple'
-             .expect('an file extension (string)') .string .bind(extension)
+             .expect('an file extension (string)') .string .bind(*extension)
              .expect('a grammar rule identifier') .id
              {'int main(int argc, char *argv[]){ multiple_files(argc,argv,' extension ','grammar_name'_'$');return 0; }\n' }
            | '.test'
-             .expect('a grammar rule identifier (optionally a maximum input size)') .id .bind(func_name)
-             .var(max_input_size) (.number .set(max_input_size) | .e)
+             .expect('a grammar rule identifier (optionally a maximum input size)') .id .bind(*func_name)
+             .var(*max_input_size) (.number .set(max_input_size) | .e)
              {'int main (int argc, char *argv[]){return test('} .ifte(max_input_size,"4194304") {','grammar_name'_'func_name');}\n'}
            | '.finalize'
              .expect('a sequence of code instructions (strings)') .string <%> *(.string <%>) )
