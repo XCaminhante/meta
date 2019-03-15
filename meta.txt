@@ -5,6 +5,15 @@
   "static void meta_exp3(void);\n"
   "char *grammar_name;\n";
 % Token directives
+%% Variables description
+var_descr = .token
+            ('*' .adjtoken .id | .id .adjtoken)
+            ('['
+              ('++'|'--'|.e)
+              (.number|.id)
+              ('++'|'--'|.e)
+            ']' | .e)
+            .deftoken;
 %% C hex chars
 hex = .any('0','9')|.any('a','f')|.any('A','F');
 xchar = '\\x' .token hex hex .deftoken;
@@ -14,7 +23,7 @@ arg = '$' {'emit_token(1);'}
     | '%' {'emit_token(0);'}
     | ('lf'|'nl') {"emit_char('\\n');"}
     | 'cr' {"emit_char('\\r');"}
-    | .id {'emit('$');'}
+    | var_descr {'emit('$');'}
     | xchar {"emit_char('\\x" $ "');"};
 output = '{' *(.string {'emit('$');'} | arg) '}'
        | '<' *(.string {%} | arg) '>';
@@ -51,15 +60,6 @@ errors = '.error(' .string {'error('$');'} ')'
        | '.success' {'test_flag=true;exit_parse_rule();return;'};
 %%% Local rule variables
 %%% You can define globals manually at the ".initialize" directive
-var_descr = .capture
-            ('*' {$} | .e) .id {$}
-            (!(')'|',') '[' {$}
-              ('++'{$}|'--'{$}|.e)
-              (.number|.id) {$}
-              ('++'{$}|'--'{$}|.e)
-            ']' {$} | .e)
-            .defcapture;
-
 user_vars = '.bind(' var_descr {'char '$'=token;token=NULL;'} ')'
           | '.var(' var_descr {'char '$'={0};'} ')'
           | '.int(' var_descr {'long '$';'} ')'
@@ -80,14 +80,14 @@ builtin_tokens = '.id' {'read_id();'}
 option_capture = '^' .capture exp3 .defcapture;
 multiple_optionals =
   <'char *opts_stack[STACK_DEPTH]; int last_opt=2;'> .var(idx[4])
-  option_capture <'opts_stack[0]=token;token=NULL;'>
-  option_capture <'opts_stack[1]=token;token=NULL;'>
+  option_capture .set(opts_stack[0])
+  option_capture .set(opts_stack[1])
   *( option_capture
      <'if(last_opt==STACK_DEPTH-1){'> .error('excess of optionals') <'}'>
       .set(opts_stack[last_opt++]) )
   .ltoa(idx,last_opt)
   {'do{bool expr_results['idx'];'}
-    <'for (int a=0; a<last_opt; a++){'> .ltoa(idx,a)
+    <'for(int a=0;a<last_opt;a++){'> .ltoa(idx,a)
       {'do{'} <'emit(opts_stack[a]);'> {'}while(0);'
        'expr_results['idx']=test_flag;'}
     <'}'>
