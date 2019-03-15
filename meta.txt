@@ -98,7 +98,7 @@ exp3 = .id {grammar_name'_'$'();'}
      | '(' exp1 ')'
      | '.e' {'test_flag=true;'}
      | '*' {'do{'} exp3 {'}while(test_flag);test_flag=true;'}
-     | '!' {'do{long entry_pos=pos;'} exp3 {'if(test_flag)pos=entry_pos;}while(0);test_flag^=true;'}
+     | '!' {'do{long entry_pos=pos;'} exp3 {'pos=entry_pos;}while(0);test_flag^=true;'}
      | multiple_optionals;
 dont_use_flag = user_token_delim
               | output
