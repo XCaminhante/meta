@@ -65,7 +65,7 @@ user_vars = '.bind(' var_descr {'char '$'=token;token=NULL;'} ')'
           | '.int(' var_descr {'long '$';'} ')'
           | '.ltoa(' var_descr {'sprintf('$} ',' var_descr {',"%d",'$');'} ')'
           | '.set(' var_descr {$'=token;token=NULL;'} ')'
-          | '.concat(' var_descr {'concatstr('$',token);free(token);token=NULL;'} ')'
+          | '.concat(' var_descr {'concatstr('$',token);'} ')'
           | '.clear(' var_descr {'if('$'){free('$');'$'=NULL;}'} ')'
           | '.emit(' var_descr {'emit('$');'} ')'
           | '.ifte(' var_descr {'if('$')emit('$');else emit('} ',' .string {$');'} ')';
