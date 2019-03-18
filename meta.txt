@@ -69,7 +69,7 @@ user_vars = '.bind(' var_descr {'char '$'=token;token=NULL;'} ')'
           | '.ltoa(' var_descr {'sprintf('$} ',' var_descr {',"%ld",'$');'} ')'
           | '.set(' var_descr {$'=token;token=NULL;'} ')'
           | '.concat(' var_descr {'concatstr('$',token);'} ')'
-          | '.clear(' var_descr {'if('$'){free('$');'$'=NULL;}'} ')'
+          | '.clear(' var_descr {'free('$');'} ')'
           | '.ifte(' var_descr {'if('$')emit('$');else emit('} ',' .string {$');'} ')';
 %% Builtin tokens
 %% ".space" directive is not affected by whitespace skipping mode
@@ -84,9 +84,8 @@ multiple_optionals =
   .var(*opts_stack[STACK_DEPTH]) .long(last_opt,2) .var(idx[5])
   option_capture .set(opts_stack[0])
   option_capture .set(opts_stack[1])
-  *( option_capture
-     <'if(last_opt==STACK_DEPTH-1){'> .error('excess of optionals') <'}'>
-      .set(opts_stack[last_opt++]) )
+  *( <'if(last_opt==STACK_DEPTH-1){'> .error('excess of optionals') <'}'>
+     option_capture .set(opts_stack[last_opt++]) )
   .ltoa(idx,last_opt)
   {'do{bool expr_results['idx'];'}
     <'for(long a=0;a<last_opt;a++){'> .ltoa(idx,a)
