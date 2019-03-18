@@ -8,12 +8,12 @@
 %% Variables description
 var_descr = .token
             ('*' .adjtoken .id | .id .adjtoken)
-            ('['
+            (!'[' .deftoken
+            |'['
               ('++'|'--'|.e)
               (.number|.id)
               ('++'|'--'|.e)
-            ']' | .e)
-            .deftoken;
+            ']' .deftoken);
 %% C hex chars
 hex = .any('0','9')|.any('a','f')|.any('A','F');
 xchar = '\\x' .token hex hex .deftoken;
@@ -62,12 +62,14 @@ errors = '.error(' .string {'error('$');'} ')'
 %%% You can define globals manually at the ".initialize" directive
 user_vars = '.bind(' var_descr {'char '$'=token;token=NULL;'} ')'
           | '.var(' var_descr {'char '$'={0};'} ')'
-          | '.long(' var_descr {'long '$';'} ')'
+          | '.long(' var_descr {'long '$'='}
+            (',' (.eq('-') .putc \ | .e ) .number / {$';'} | ')' {'{0};'})
+          | '.bool(' var_descr {'bool '$'='}
+            (',' ('false'|'true') {$';'} | ')' {'false;'})
           | '.ltoa(' var_descr {'sprintf('$} ',' var_descr {',"%d",'$');'} ')'
           | '.set(' var_descr {$'=token;token=NULL;'} ')'
           | '.concat(' var_descr {'concatstr('$',token);'} ')'
           | '.clear(' var_descr {'if('$'){free('$');'$'=NULL;}'} ')'
-          | '.emit(' var_descr {'emit('$');'} ')'
           | '.ifte(' var_descr {'if('$')emit('$');else emit('} ',' .string {$');'} ')';
 %% Builtin tokens
 %% ".space" directive is not affected by whitespace skipping mode
