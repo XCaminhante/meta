@@ -63,10 +63,10 @@ errors = '.error(' .string {'error('$');'} ')'
 user_vars = '.bind(' var_descr {'char '$'=token;token=NULL;'} ')'
           | '.var(' var_descr {'char '$'={0};'} ')'
           | '.long(' var_descr {'long '$'='}
-            (',' (.eq('-') .putc \ | .e ) .number / {$';'} | ')' {'{0};'})
+            (',' ('-' {$} \ | .e) .number / {$';'} | .e {'{0};'}) ')'
           | '.bool(' var_descr {'bool '$'='}
-            (',' ('false'|'true') {$';'} | ')' {'false;'})
-          | '.ltoa(' var_descr {'sprintf('$} ',' var_descr {',"%d",'$');'} ')'
+            (',' ('true'|'false') {$';'} | .e {'false;'}) ')'
+          | '.ltoa(' var_descr {'sprintf('$} ',' var_descr {',"%ld",'$');'} ')'
           | '.set(' var_descr {$'=token;token=NULL;'} ')'
           | '.concat(' var_descr {'concatstr('$',token);'} ')'
           | '.clear(' var_descr {'if('$'){free('$');'$'=NULL;}'} ')'
@@ -81,7 +81,7 @@ builtin_tokens = '.id' {'read_id();'}
 %% Optional, out-of-order rules
 option_capture = '^' .capture exp3 .defcapture;
 multiple_optionals =
-  <'char *opts_stack[STACK_DEPTH]; int last_opt=2;'> .var(idx[4])
+  <'char *opts_stack[STACK_DEPTH]; long last_opt=2;'> .var(idx[4])
   option_capture .set(opts_stack[0])
   option_capture .set(opts_stack[1])
   *( option_capture
@@ -89,11 +89,11 @@ multiple_optionals =
       .set(opts_stack[last_opt++]) )
   .ltoa(idx,last_opt)
   {'do{bool expr_results['idx'];'}
-    <'for(int a=0;a<last_opt;a++){'> .ltoa(idx,a)
+    <'for(long a=0;a<last_opt;a++){'> .ltoa(idx,a)
       {'do{'} <'emit(opts_stack[a]);'> {'}while(0);'
        'expr_results['idx']=test_flag;'}
     <'}'>
-    <'for(int a=0;a<last_opt;a++){'> .ltoa(idx,a)
+    <'for(long a=0;a<last_opt;a++){'> .ltoa(idx,a)
       {'if(!expr_results['idx'])do{'}
         <'emit(opts_stack[a]);free(opts_stack[a]);'>
       {'}while(0);'}
