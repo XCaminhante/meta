@@ -60,7 +60,7 @@ errors = '.error(' .string {'error('$');'} ')'
        | '.success' {'test_flag=true;exit_parse_rule();return;'};
 %%% Local rule variables
 %%% You can define globals manually at the ".initialize" directive
-user_vars = '.bind(' var_descr {'char '$'=token;token=NULL;'} ')'
+user_vars = '.bind(' .id {'char *'$'=token;token=NULL;'} ')'
           | '.var(' var_descr {'char '$'={0};'} ')'
           | '.long(' var_descr {'long '$'='}
             (',' ('-' {$} \ | .e) .number / {$';'} | .e {'{0};'}) ')'
@@ -94,7 +94,7 @@ multiple_optionals =
     <'}'>
     <'for(long a=0;a<last_opt;a++){'> .ltoa(idx,a)
       {'if(!expr_results['idx'])do{'
-        opts_stack[a]} <'free(opts_stack[a]);'>
+        opts_stack[a]} .clear(opts_stack[a])
       {'}while(0);'}
     <'}'>
   {'}while(0);test_flag=true;'}
@@ -143,11 +143,11 @@ finalize = .expect('a compiler mode directive (.end,.multiple,.test,.finalize)')
              .expect('a grammar rule identifier') .id
              {'int main(int argc, char *argv[]){return first_into_second(argc,argv,'grammar_name'_'$');}\n'}
            | '.multiple'
-             .expect('an file extension (string)') .string .bind(*extension)
+             .expect('an file extension (string)') .string .bind(extension)
              .expect('a grammar rule identifier') .id
              {'int main(int argc, char *argv[]){ multiple_files(argc,argv,' extension ','grammar_name'_'$');return 0; }\n' }
            | '.test'
-             .expect('a grammar rule identifier (optionally a maximum input size)') .id .bind(*func_name)
+             .expect('a grammar rule identifier (optionally a maximum input size)') .id .bind(func_name)
              .var(*max_input_size) (.number .set(max_input_size) | .e)
              {'int main (int argc, char *argv[]){return test('} .ifte(max_input_size,"4194304") {','grammar_name'_'func_name');}\n'}
            | '.finalize'
