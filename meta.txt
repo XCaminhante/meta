@@ -115,21 +115,22 @@ dont_use_flag = user_token_delim
               | errors
               | user_vars;
 exp2 = *dont_use_flag
-       ( {'do{long entry_pos=pos;(void)entry_pos;'}
+       ( {'{long entry_pos=pos;(void)entry_pos;'}
          exp3
-         ( '&' {'if(test_flag){'} exp3 {'if(!test_flag)pos=entry_pos;}'}
-           *('&' {'if(test_flag){'} exp3 {'if(!test_flag)pos=entry_pos;}'})
+         ( '&' {'if(test_flag){'} exp3 {'test_flag||pos=entry_pos;}'}
+           *('&' {'if(test_flag){'} exp3 {'test_flag||pos=entry_pos;}'})
          | .e)
          ( !(';'|'|'|')') {'if(test_flag){'}
            *(dont_use_flag | exp3 {'error_if_false();'})
            {'}'}
          | .e)
-         {'}while(0);'}
+         {'}'}
        | .e);
 exp1 = 'continue' .success
      | {'do{'}
        .expect('a sequence of expressions') exp2
-       *('|' {'if(test_flag)break;'} .expect('a sequence of expressions') exp2)
+       *('|' {'if(test_flag)break;'}
+         .expect('a sequence of expressions') exp2)
        {'}while(0);'};
 %% First level expressions
 stat = '%' *.neq(10)
