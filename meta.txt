@@ -1,9 +1,8 @@
 .syntax meta;
 % MetaG metacompiler grammar
 .initialize
-  "static void meta_exp1(void);\n"
-  "static void meta_exp3(void);\n"
-  "char *grammar_name;\n";
+  exp1 exp3
+  .var(*grammar_name);
 % Token directives
 %% Variables descriptions
 var_descr = .token
@@ -143,7 +142,7 @@ stat = '%' *.neq(10)
        {'exit_parse_rule();}\n'};
 init_expr = .string {%}
           | .id {'static void 'grammar_name'_'$'(void);'}
-          | user_vars;
+          | !';' {'static '} user_vars;
 initialize = '%' *.neq(10) initialize
            | '.initialize'
              .expect('a sequence of code instructions (strings, grammar rule mentions or vars)')

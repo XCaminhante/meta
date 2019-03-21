@@ -26,6 +26,7 @@ static char *expecting=NULL, *unexpected=NULL, *reason=NULL;
 
 static void make_token (int start_pos);
 static void no_unused_fwa ();
+
 static void start_line (void) {
   pos_last_line=pos+1;
   line++;
@@ -373,6 +374,7 @@ static int test (int source_len, void(*func)()) {
   func();
   return 0;
 }
+
 // To mute "unused function" warnings
 static void(*no_unused_fwa1[])(char,char) = { read_any_between,read_any_but };
 static void(*no_unused_fwa2[])(char) = { read_char_eq,read_char_neq,emit_char };
