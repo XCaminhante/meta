@@ -5,7 +5,7 @@
   "static void meta_exp3(void);\n"
   "char *grammar_name;\n";
 % Token directives
-%% Variables description
+%% Variables descriptions
 var_descr = .token
             ('*' .adjtoken .id | .id .adjtoken)
             (!'[' .deftoken
@@ -141,10 +141,15 @@ stat = '%' *.neq(10)
        .expect('a sequence of expressions') exp1
        .expect('a ; terminator') ';'
        {'exit_parse_rule();}\n'};
+init_expr = .string {%}
+          | .id {'static void 'grammar_name'_'$'(void);'}
+          | user_vars;
 initialize = '%' *.neq(10) initialize
            | '.initialize'
-             .expect('a sequence of code instructions (strings)') .string {%} *( .string {%} )
-             .expect('a ; terminator') ';'
+             .expect('a sequence of code instructions (strings, grammar rule mentions or vars)')
+             init_expr *init_expr
+             .expect('a ; terminator')
+             ';'
            | .e;
 finalize = .expect('a compiler mode directive (.end,.multiple,.test,.finalize)')
            ( '.end'
