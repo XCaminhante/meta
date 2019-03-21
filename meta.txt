@@ -153,21 +153,21 @@ initialize = '%' *.neq(10) initialize
 finalize = .expect('a compiler mode directive (.end,.multiple,.test,.finalize)')
            ( '.end'
              .expect('a grammar rule identifier') .id
-             {'int main(int argc, char *argv[]){return first_into_second(argc,argv,'grammar_name'_'$');}\n'}
+             {'int main(int argc,char *argv[]){return first_into_second(argc,argv,'grammar_name'_'$');}\n'}
            | '.multiple'
              .expect('an file extension (string)') .string .bind(extension)
              .expect('a grammar rule identifier') .id
-             {'int main(int argc, char *argv[]){ multiple_files(argc,argv,' extension ','grammar_name'_'$');return 0; }\n' }
+             {'int main(int argc,char *argv[]){multiple_files(argc,argv,'extension','grammar_name'_'$');return 0;}\n' }
            | '.test'
              .expect('a grammar rule identifier (optionally a maximum input size)') .id .bind(func_name)
              .var(*max_input_size) (.number .set(max_input_size) | .e)
-             {'int main (int argc, char *argv[]){return test('} .ifte(max_input_size,"4194304") {','grammar_name'_'func_name');}\n'}
+             {'int main (int argc,char *argv[]){return test('} .ifte(max_input_size,"4194304") {','grammar_name'_'func_name');}\n'}
            | '.finalize'
              .expect('a sequence of code instructions (strings)') .string {%} *(.string {%}) )
            .expect('a ; terminator') ';' ;
 program = '.syntax'
             .expect('a grammar name') .space .id .set(grammar_name)
-            .expect('a ; terminator')
+            .expect('a ; terminator or the path to support.h')
             (.string {'#include "'%'/support.h"\n'} | .e {'#include "support.h"\n'}) ';'
           initialize
           *stat
