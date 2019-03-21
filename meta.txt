@@ -107,7 +107,7 @@ exp3 = .id {grammar_name'_'$'();'}
      | '(' exp1 ')'
      | '.e' {'test_flag=true;'}
      | '*' {'do{'} exp3 {'}while(test_flag);test_flag=true;'}
-     | '!' {'do{long entry_pos=pos;'} exp3 {'pos=entry_pos;}while(0);test_flag^=true;'}
+     | '!' {'do{long entry_pos=pos;'} exp3 {'pos=entry_pos;}while(0);test_flag=!test_flag;'}
      | multiple_optionals;
 dont_use_flag = user_token_delim
               | output
@@ -117,9 +117,7 @@ dont_use_flag = user_token_delim
 exp2 = *dont_use_flag
        ( {'{long entry_pos=pos;(void)entry_pos;'}
          exp3
-         ( '&' {'if(test_flag){'} exp3 {'test_flag||pos=entry_pos;}'}
-           *('&' {'if(test_flag){'} exp3 {'test_flag||pos=entry_pos;}'})
-         | .e)
+         *('&' {'if(test_flag){'} exp3 {'if(!test_flag)pos=entry_pos;}'})
          ( !(';'|'|'|')') {'if(test_flag){'}
            *(dont_use_flag | exp3 {'error_if_false();'})
            {'}'}
