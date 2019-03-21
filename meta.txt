@@ -150,6 +150,9 @@ initialize = '%' *.neq(10) initialize
              .expect('a ; terminator')
              ';'
            | .e;
+final_expr = .string {%}
+           | .id {grammar_name'_'$'();'}
+           | !';' {'static '} user_vars;
 finalize = .expect('a compiler mode directive (.end,.multiple,.test,.finalize)')
            ( '.end'
              .expect('a grammar rule identifier') .id
@@ -163,7 +166,8 @@ finalize = .expect('a compiler mode directive (.end,.multiple,.test,.finalize)')
              .var(*max_input_size) (.number .set(max_input_size) | .e)
              {'int main (int argc,char *argv[]){return test('} .ifte(max_input_size,"4194304") {','grammar_name'_'func_name');}\n'}
            | '.finalize'
-             .expect('a sequence of code instructions (strings)') .string {%} *(.string {%}) )
+             .expect('a sequence of code instructions (strings, grammar rule mentions or vars)')
+             final_expr *final_expr )
            .expect('a ; terminator') ';' ;
 program = '.syntax'
             .expect('a grammar name') .space .id .set(grammar_name)
