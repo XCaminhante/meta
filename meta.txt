@@ -25,8 +25,9 @@ arg = '$' {'emit_token(true);'}
     | 'cr' {"emit_char('\\r');"}
     | var_descr {'emit('$');'}
     | xchar {"emit_char('\\x" $ "');"};
+
 output = '{' *(.string {'emit('$');'} | arg) '}'
-       | '<' *(.string {%} | arg) '>';
+       | '<' *(.string {%}) '>';
 %% Whitespace skipping mode for builtin tokens
 space_control = '\\' {'ignore_whitespace=true;'}
               | '/' {'ignore_whitespace=false;'};
@@ -87,17 +88,17 @@ multiple_optionals =
   *( <'if(last_opt==STACK_DEPTH-1){'> .error('excess of optionals') <'}'>
      option_capture .set(opts_stack[last_opt++]) )
   .ltoa(idx,last_opt)
-  {'do{bool expr_results['idx'];'}
+  {'do{bool expr_results['idx'];bool at_least_one=false;'}
     <'for(long a=0;a<last_opt;a++){'> .ltoa(idx,a)
       {'do{' opts_stack[a] '}while(0);'
-       'expr_results['idx']=test_flag;'}
+       'at_least_one|=expr_results['idx']=test_flag;'}
     <'}'>
     <'for(long a=0;a<last_opt;a++){'> .ltoa(idx,a)
       {'if(!expr_results['idx'])do{'
         opts_stack[a]} .clear(opts_stack[a])
-      {'}while(0);'}
+      {'at_least_one|=test_flag;}while(0);'}
     <'}'>
-  {'}while(0);test_flag=true;'}
+  {'test_flag=at_least_one;}while(0);'}
   ;
 %% Second level expressions (common directives level)
 exp3 = .id {grammar_name'_'$'();'}
@@ -115,9 +116,14 @@ dont_use_flag = user_token_delim
               | errors
               | user_vars;
 exp2 = *dont_use_flag
-       ( exp3 ( !(';'|'|'|')') {'if(test_flag){'}
-         *( dont_use_flag | exp3 {'error_if_false();'} )
-         {'}'} | .e )
+       ( exp3
+         ( '&' {'if(test_flag){'} exp3 {'}'}
+           *('&' {'if(test_flag){'} exp3 {'}'})
+         | .e)
+         ( !(';'|'|'|')') {'if(test_flag){'}
+           *(dont_use_flag | exp3 {'error_if_false();'})
+           {'}'}
+         | .e )
        | .e);
 exp1 = 'continue' .success
      | {'do{'}
@@ -151,7 +157,7 @@ finalize = .expect('a compiler mode directive (.end,.multiple,.test,.finalize)')
              .var(*max_input_size) (.number .set(max_input_size) | .e)
              {'int main (int argc, char *argv[]){return test('} .ifte(max_input_size,"4194304") {','grammar_name'_'func_name');}\n'}
            | '.finalize'
-             .expect('a sequence of code instructions (strings)') .string <%> *(.string <%>) )
+             .expect('a sequence of code instructions (strings)') .string {%} *(.string {%}) )
            .expect('a ; terminator') ';' ;
 program = '.syntax'
             .expect('a grammar name') .space .id .set(grammar_name)
