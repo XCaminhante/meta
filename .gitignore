@@ -1,4 +1,3 @@
-bin/
-.DS_Store
-*~
-*.swp
+meta
+meta?
+meta?.c

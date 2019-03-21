@@ -15,10 +15,10 @@ $(ccode): $(grammars)
 meta2.c: meta.txt
 	./meta meta.txt meta2.c
 
-meta3.c: meta.txt meta2
+meta3.c: meta2
 	./meta2 meta.txt meta3.c
 
-meta4.c: meta.txt meta3
+meta4.c: meta3
 	./meta3 meta.txt meta4.c
 
 bootstrap: meta2.c
