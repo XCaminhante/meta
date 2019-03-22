@@ -21,7 +21,7 @@ To compile a grammar in the same directory:
 To compile directly:
 
 > ```./meta grammar.meta grammar.c
-> gcc grammar.c -o grammar```
+  gcc grammar.c -o grammar```
 
 ## TODO
 
