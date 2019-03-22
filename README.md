@@ -30,3 +30,5 @@ To compile directly:
 - [ ] Understandable messages for syntax errors and warnings
 - [ ] Create useful grammar examples
 - [ ] Create a demonstration compiler
+- [ ] Saner documentation
+- [ ] Documentation in english
