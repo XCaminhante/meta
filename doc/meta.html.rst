@@ -204,10 +204,10 @@ Strings podem conter caracteres especiais no estilo C, como::
 Constantes numéricas
 ^^^^^^^^^^^^^^^^^^^^^
 
-Algumas diretivas aceitam argumentos numéricos, como:
+Algumas diretivas aceitam argumentos numéricos, como::
 
     123
-    \xff
+    \\xff
 
 Identificadores
 ^^^^^^^^^^^^^^^
