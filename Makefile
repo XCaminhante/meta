@@ -32,4 +32,4 @@ evolve: metacompile
 	rm meta?.c meta? -f
 
 clean:
-	rm $(bins) $(ccode) -f
+	rm $(bins) $(ccode) meta? meta?.c -f

@@ -374,6 +374,7 @@ Ainda há muito para aprimorar.</p>
 Existem alguns tutoriais na internet demonstrando como Meta-II funcionava.</p>
 <p>MetaG recebe uma gramática escrita em uma linguagem especial e produz código em C que implementa um parser/compilador para esta gramática.
 Este manual descreve como usar a linguagem de MetaG de forma prática.</p>
+<p>MetaG pode ser útil para criar preprocessadores para uma linguagem pré-existente, converter um formato de configuração em código executável, ou implementar uma linguagem. Na esperança que seja útil, este documento foi criado.</p>
 </div>
 <div class="section" id="como-usar-metag">
 <h2>Como usar MetaG?</h2>
@@ -416,11 +417,139 @@ gcc meta3.c -o meta3
 #   o comando à seguir deve mostrar que os dois arquivos são idênticos:
 diff meta3.c meta4.c
 </pre>
-<p>Estou fornecendo um Makefile que implementa a metacompilação.</p>
+<p>Acompanha um Makefile que implementa a metacompilação:</p>
+<pre class="literal-block">
+# Faz bootstrap e metacompila:
+make metacompile
+# Admite a nova versão:
+make evolve
+</pre>
 </div>
-<div class="section" id="e-a-linguagem-de-metag">
-<h2>E a linguagem de MetaG?</h2>
-<p>A linguagem de MetaG é livremente inspirada em EBNF, e será descrita em detalhes no restante do documento.</p>
+</div>
+<div class="section" id="linguagem-metag">
+<h1>Linguagem MetaG</h1>
+<p>A linguagem de MetaG é livremente inspirada em EBNF, com semântica PEG.
+MetaG constrói parsers recursivo-descendentes com predição ajustável e backtracking.</p>
+<p>MetaG foi pensado para aplicações práticas que precisem detalhar tokens byte por byte.
+Possui instruções para controle do espaço branco e definição de tokens customizados.</p>
+<p>Acima de tudo, a linguagem de MetaG processa texto.</p>
+<p>Para facilitar a leitura, tenha em mente:</p>
+<ul class="simple">
+<li>&quot;Metacompilador&quot; se refere ao MetaG</li>
+<li>&quot;Compilador&quot; se refere ao compilador construído à partir da gramática que o usuário criar.</li>
+</ul>
+<div class="section" id="convencoes-lexicas">
+<h2>Convenções léxicas</h2>
+<p>A gramática MetaG no alto nível é composta de regras de reconhecimento de padrões.</p>
+<p>Para instruir o metacompilador de forma detalhada existem diretivas de diferentes tipos.
+As diretivas são os elementos mais básicos da linguagem, com as quais são construídas todas as subexpressões.</p>
+<p>MetaG não faz exigência de identação, mas você pode usar livremente para facilitar a leitura.</p>
+<div class="section" id="primeiros-passos">
+<h3>Primeiros passos</h3>
+<p>Toda construção de alto nível de MetaG termina com um ponto-e-vírgula.
+As subexpressões são separadas por espaço branco.</p>
+<p>Toda gramática MetaG começa com uma diretiva '.syntax', que dá o nome da gramática:</p>
+<pre class="literal-block">
+.syntax my_grammar;
+</pre>
+<p>E termina com uma diretiva de finalização, que define o que o compilador irá fazer primeiro. Por exemplo:</p>
+<pre class="literal-block">
+.end first_rule;
+</pre>
+<p>Opcionalmente a gramática pode possuir uma diretiva de inicialização, que adiciona código customizado no início do compilador.
+A diretiva &quot;.initialize&quot; precisa ser imediatamente a primeira após &quot;.syntax&quot; e vir antes de todas as outras regras.</p>
+<pre class="literal-block">
+.initialize &quot;/* Hello */&quot;;
+</pre>
+<p>As regras de reconhecimento possuem um nome e um corpo, separados por um sinal de igual.
+O corpo é composto de uma ou mais diretivas.</p>
+<p>Regras de reconhecimento são como funções que não recebem argumentos.
+Elas podem chamar umas às outras e à si mesmas recursivamente, se necessário.</p>
+<pre class="literal-block">
+nome_da_regra = &lt;'/*corpo_da_regra*/'&gt;;
+</pre>
+<p>Você não pode definir regras com corpo vazio, mas pode definir regras que ignoram a entrada:</p>
+<pre class="literal-block">
+regra_nula = continue;
+</pre>
+<p>Aqui uma gramática que reconhece a sequência de caracteres &quot;abc&quot; e exibe na saída o texto &quot;OK&quot; em caso de sucesso:</p>
+<pre class="literal-block">
+.syntax test;
+abc = 'abc' {'OK'};
+.test abc;
+</pre>
+<p>A diretiva de finalização &quot;.test&quot; faz o compilador esperar texto na entrada padrão do console (stdin), configura o estado inicial do compilador e chama a função definida para processar o texto recebido (neste caso é a regra &quot;abc&quot;).</p>
+<p>Por padrão, MetaG ignora todo o texto posterior ao que for reconhecido pela regra chamada. Então se você escrever &quot;abcdef&quot; na entrada do console, o compilador irá emitir &quot;OK&quot; e ignorar &quot;def&quot;.</p>
+<div class="section" id="ordem-de-regras-de-reconhecimento">
+<h4>Ordem de regras de reconhecimento</h4>
+<p>Devido ao fato do código gerado ter uma correlação muito próxima com a linguagem de MetaG e o código emitido ser em C, você idealmente deve declarar suas regras algum momento antes de usa-las em outras, da mesma forma que deve definir suas funções em um momento anterior ao de usa-las em C.</p>
+<p>Caso precise usar uma regra antes do ponto onde ela é definida, use &quot;.initialize&quot; para declarar os protótipos das funções das regras. Isso será explicado mais à frente.</p>
+<p>Ou seja:</p>
+<pre class="literal-block">
+% &quot;regra2&quot; foi definida antes do primeiro local onde é usada:
+regra2 = {'OK'};
+regra1 = regra2;
+
+% O compilador C irá reclamar:
+regra1 = regra2;
+regra2 = {'OK'};
+
+% O compilador C não irá reclamar:
+.initialize regra2;
+regra1 = regra2;
+regra2 = {'OK'};
+</pre>
+</div>
+</div>
+<div class="section" id="comentarios">
+<h3>Comentários</h3>
+<p>Comentários começam com o caractere &quot;%&quot; e continuam até a quebra da linha.
+O conteúdo dos comentários é tratado como espaço em branco pelo metacompilador e não causa efeito na saída.</p>
+<pre class="literal-block">
+% Um comentário
+</pre>
+<p>Comentários podem aparecer apenas entre a diretiva inicial &quot;.syntax&quot; e de finalização, entre as regras de reconhecimento e possivelmente antes de &quot;.initialize&quot;.
+Comentários não podem aparecer dentro das regras de reconhecimento ou dentro do corpo das outras diretivas.</p>
+<p>Se sentir necessidade de comentar partes de uma regra, quebre suas regras em regras menores e use comentários antes/acima delas.</p>
+<p>Exemplo:</p>
+<pre class="literal-block">
+% inválido
+.syntax test;
+% válido
+.initialize .var(p[3]); % válido
+% válido
+abc = 'abc' {'OK'}; % válido
+def = 'def' % inválido;
+.test abc;
+</pre>
+</div>
+<div class="section" id="literais">
+<h3>Literais</h3>
+<p>Strings literais são delimitadas pelos caracteres de aspas simples ou duplas:</p>
+<pre class="literal-block">
+&quot;uma string&quot;
+'outra string'
+</pre>
+<p>Strings podem conter caracteres especiais no estilo C, como:</p>
+<pre class="literal-block">
+&quot;\\ \n \r&quot;
+</pre>
+</div>
+<div class="section" id="constantes-numericas">
+<h3>Constantes numéricas</h3>
+<p>Algumas diretivas aceitam argumentos numéricos, como:</p>
+<blockquote>
+123
+xff</blockquote>
+</div>
+<div class="section" id="identificadores">
+<h3>Identificadores</h3>
+<p>Os identificadores, como os nomes das regras de reconhecimento, podem conter os seguintes caracteres:</p>
+<ul class="simple">
+<li>Underline &quot;_&quot; ou letras latinas (&quot;A&quot; até &quot;Z&quot;, &quot;a&quot; até &quot;z&quot;) como primeiro caractere</li>
+<li>Os mesmos caracteres anteriores, mais algarismos (&quot;0&quot; até &quot;9&quot;) do segundo caractere em diante</li>
+</ul>
+</div>
 </div>
 </div>
 </div>

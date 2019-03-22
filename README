@@ -1,14 +1,30 @@
-METAG for C
 
-This project is based on the paper META-II by Val Schorre from 1964.
+MetaG, a straightforward compiler-compiler
+==========================================
 
-METAG is written in itself so it needs to be bootstrapped from a C implementation.
+This project is based on [META-II by Val Schorre](https://en.wikipedia.org/wiki/Compiler-compiler#META_II).
 
-To build,
+MetaG generates C code implementing a parser/compiler for a EBNF-like grammar file.
 
-gcc meta.c -o boot
-./boot meta.txt meta2.c
-gcc -o meta meta2.c
+MetaG is written in itself so it needs to be bootstrapped from a C implementation.
 
-The original version of META-II only allowed productions to emit arbitrary text or the last recognized token.
-This version isn't ZASHQUARED.
+## Build and use
+
+To bootstrap:
+
+> `make meta`
+
+To compile a grammar in the same directory:
+
+> `make grammar`
+
+To compile directly:
+
+> ```./meta grammar.meta grammar.c
+> gcc grammar.c -o grammar```
+
+## TODO
+
+- [ ] Understandable messages for syntax errors and warnings
+- [ ] Create useful grammar examples
+- [ ] Create a demonstration compiler
