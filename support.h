@@ -132,34 +132,32 @@ static void read_literal (const char *literal) {
   for (; (pos+i)<input_len && literal[i]!='\0'; i++) {
     if (source[pos+i] != literal[i]) {
       test_flag=false;
-      return;
-    }
+      return; }
     if (source[pos+i] == '\n') {
       new_last_line=pos+i+1;
-      new_lines++;
-    }
-  }
+      new_lines++; }}
   pos_last_line = new_last_line; line += new_lines; pos += i;
   test_flag=true;
   make_token(pos-i);
 }
+static inline bool alpha_und (char c) {
+  return ('A'<=c && c<='Z') || ('a'<=c && c<='z') || c=='_';
+}
+
+static inline bool numeric (char c) {
+  return ('0'<=c && c<='9');
+}
+
 static void read_id () {
   if (!ignore_whitespace) skip_whitespace();
-  int entry_pos=pos;
-  if (pos<input_len &&
-  ( ('A' <= source[pos] && source[pos] <= 'Z') ||
-    ('a' <= source[pos] && source[pos] <= 'z') || source[pos] == '_')) {
-    pos++;
-    test_flag=true; }
-  else {
-    test_flag=false;
-    return; }
-  while (pos<input_len &&
-  (('A' <= source[pos] && source[pos] <= 'Z') ||
-  ('a' <= source[pos] && source[pos] <= 'z') ||
-  ('0' <= source[pos] && source[pos] <= '9') || source[pos] == '_')) {
-    pos++; }
-  make_token(entry_pos);
+  test_flag=true;
+  if (!alpha_und(source[pos])) {
+    test_flag=false; return; }
+  long i=1;
+  for (; (pos+i)<input_len &&
+      (alpha_und(source[pos+i]) || numeric(source[pos+i])); i++);;
+  pos += i;
+  make_token(pos-i);
 }
 static void read_string () {
   int entry_pos;
