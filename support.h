@@ -128,16 +128,20 @@ static void emit_token (int quote) {
 }
 static void read_literal (const char *literal) {
   if (!ignore_whitespace) skip_whitespace();
-  int entry_pos=pos, i=0;
-  while (pos<input_len && literal[i] != '\0' && source[pos] == literal[i]) {
-    pos++;
-    i++; }
-  if (literal[i] == '\0') {
-    test_flag=true;
-    make_token(entry_pos); }
-  else {
-    pos=entry_pos;
-    test_flag=false; }
+  long new_last_line=pos_last_line, new_lines=0, i=0;
+  for (; (pos+i)<input_len && literal[i]!='\0'; i++) {
+    if (source[pos+i] != literal[i]) {
+      test_flag=false;
+      return;
+    }
+    if (source[pos+i] == '\n') {
+      new_last_line=pos+i+1;
+      new_lines++;
+    }
+  }
+  pos_last_line = new_last_line; line += new_lines; pos += i;
+  test_flag=true;
+  make_token(pos-i);
 }
 static void read_id () {
   if (!ignore_whitespace) skip_whitespace();
