@@ -130,7 +130,6 @@ static void read_literal (const char *literal) {
   if (!ignore_whitespace) skip_whitespace();
   test_flag=true;
   long new_last_line=pos_last_line, new_lines=0, i=0;
-  
   for (; (pos+i)<input_len && literal[i]!='\0'; i++) {
     if (source[pos+i] != literal[i]) {
       test_flag=false;
@@ -139,25 +138,6 @@ static void read_literal (const char *literal) {
       new_last_line=pos+i+1;
       new_lines++; }}
   pos_last_line = new_last_line; line += new_lines; pos += i;
-  make_token(pos-i);
-}
-static inline bool alpha_und (char c) {
-  return ('A'<=c && c<='Z') || ('a'<=c && c<='z') || c=='_';
-}
-
-static inline bool numeric (char c) {
-  return ('0'<=c && c<='9');
-}
-
-static void read_id () {
-  if (!ignore_whitespace) skip_whitespace();
-  test_flag=true;
-  if (!alpha_und(source[pos])) {
-    test_flag=false; return; }
-  long i=1;
-  for (; (pos+i)<input_len &&
-      (alpha_und(source[pos+i]) || numeric(source[pos+i])); i++);;
-  pos += i;
   make_token(pos-i);
 }
 static void read_string () {
@@ -184,6 +164,25 @@ static void read_string () {
   else {
     pos=entry_pos;
     test_flag=false; }
+}
+static inline bool alpha_und (char c) {
+  return ('A'<=c && c<='Z') || ('a'<=c && c<='z') || c=='_';
+}
+
+static inline bool numeric (char c) {
+  return ('0'<=c && c<='9');
+}
+
+static void read_id () {
+  if (!ignore_whitespace) skip_whitespace();
+  test_flag=true;
+  if (!alpha_und(source[pos])) {
+    test_flag=false; return; }
+  long i=1;
+  for (; (pos+i)<input_len &&
+      (alpha_und(source[pos+i]) || numeric(source[pos+i])); i++);;
+  pos += i;
+  make_token(pos-i);
 }
 static void read_number () {
   int entry_pos;
