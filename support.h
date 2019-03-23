@@ -128,7 +128,9 @@ static void emit_token (int quote) {
 }
 static void read_literal (const char *literal) {
   if (!ignore_whitespace) skip_whitespace();
+  test_flag=true;
   long new_last_line=pos_last_line, new_lines=0, i=0;
+  
   for (; (pos+i)<input_len && literal[i]!='\0'; i++) {
     if (source[pos+i] != literal[i]) {
       test_flag=false;
@@ -137,7 +139,6 @@ static void read_literal (const char *literal) {
       new_last_line=pos+i+1;
       new_lines++; }}
   pos_last_line = new_last_line; line += new_lines; pos += i;
-  test_flag=true;
   make_token(pos-i);
 }
 static inline bool alpha_und (char c) {
@@ -384,7 +385,7 @@ static void(*no_unused_fwa3[])() = { no_unused_fwa,
   start_user_token,end_user_token,capture_to_token,
   emit,emit_token,
   read_literal,read_id,read_string,read_number,
-  error,warning,
+  warning,error,error_if_false,
   multiple_files };
 static int(*no_unused_fwa4[])() = { first_into_second,test };
 static void no_unused_fwa () {
