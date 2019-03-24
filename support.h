@@ -27,7 +27,7 @@ static char *expecting=NULL, *unexpected=NULL, *reason=NULL;
 static void make_token (int start_pos);
 static void no_unused_fwa ();
 
-static void start_line (void) {
+static inline void start_line (void) {
   pos_last_line=pos+1;
   line++;
 }
@@ -38,19 +38,19 @@ static char* concatstr (char *txt, const char *concat) {
   strcpy(newbuf+txtlen,concat);
   return newbuf;
 }
-static void enter_parse_rule (char *parse_rule) {
+static inline void enter_parse_rule (char *parse_rule) {
   parse_stack[parse_stack_top++]=parse_rule;
 }
-static void exit_parse_rule () {
+static inline void exit_parse_rule () {
   parse_stack_top--;
 }
-static void start_user_token () {
+static inline void start_user_token () {
   user_token_stack[utoken_stack_top++]=pos;
 }
-static void end_user_token () {
+static inline void end_user_token () {
   make_token(user_token_stack[--utoken_stack_top]);
 }
-static bool is_space (char c) {
+static inline bool is_space (char c) {
   return (c==' ' || c=='\t' || c=='\r' || c=='\n');
 }
 static void skip_whitespace (void) {
