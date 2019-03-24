@@ -53,8 +53,7 @@ errors = '.error(' .string {'error('$');'} ')'
        | '.warn(' .string {'warning('$');'} ')'
        | '.expect(' {'expecting='} ( .string {$';'} | .e {'NULL;'} ) ')'
        | '.unexpect(' {'unexpected='} ( .string {$';'} | .e {'NULL;'} ) ')'
-       | '.reason(' .string {'reason='$';'} ')'
-       | '.noreason' {'reason=NULL;'}
+       | '.reason(' {'reason='} ( .string {$';'} | .e {'NULL;'} ) ')'
        | '.failure' {'test_flag=false;exit_parse_rule();return;'}
        | '.success' {'test_flag=true;exit_parse_rule();return;'};
 %%% Local rule variables
