@@ -99,29 +99,29 @@ static void emit_token (int quote) {
     if (quote) emit_char('"');
     for (; token[i+1] != '\0'; i++) {
       switch (token[i]) {
-        case '"':
-          if (!quote) goto def_case;
-          emit("\\\"");
-        break;
-        case '\n':
-          if (!quote) goto def_case;
-          emit("\\n");
-        break;
-        case '\r':
-          if (!quote) goto def_case;
-          emit("\\r");
-        break;
-        case '\\':
-          if (!quote) {
-            i++;
-            switch(token[i]) {
-              case 'n': emit_char('\n'); break;
-              case 'r': emit_char('\r'); break;
-              default: goto def_case; }
-            break; }
-        default:
-          def_case:
-          emit_char(token[i]); }}
+      case '"':
+        if (!quote) goto def_case;
+        emit("\\\"");
+      break;
+      case '\n':
+        if (!quote) goto def_case;
+        emit("\\n");
+      break;
+      case '\r':
+        if (!quote) goto def_case;
+        emit("\\r");
+      break;
+      case '\\':
+        if (!quote) {
+          i++;
+          switch(token[i]) {
+            case 'n': emit_char('\n'); break;
+            case 'r': emit_char('\r'); break;
+            default: goto def_case; }
+          break; }
+      default:
+        def_case:
+        emit_char(token[i]); }}
     if (quote) emit_char('"');
     return; }
   emit(token);
@@ -173,20 +173,15 @@ static void read_id () {
   make_token(pos-i);
 }
 static void read_number () {
-  int entry_pos;
   if (!ignore_whitespace) skip_whitespace();
-  entry_pos=pos;
-  if (pos<input_len && source[pos] == '-') {
-    pos++; }
-  if (pos<input_len && '0' <= source[pos] && source[pos] <= '9') {
-    pos++;
-    test_flag=true; }
-  else {
+  test_flag=true;
+  if (!numeric(source[pos])) {
     test_flag=false;
     return; }
-  while (pos<input_len && '0' <= source[pos] && source[pos] <= '9') {
-    pos++; }
-  make_token(entry_pos);
+  long i=1;
+  for (; (pos+i)<input_len && numeric(source[pos+i]); i++);;
+  pos += i;
+  make_token(pos-i);
 }
 static void read_any_between (char first, char last) {
   if (pos<input_len && source[pos] >= first && source[pos] <= last) {
