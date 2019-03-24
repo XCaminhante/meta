@@ -158,11 +158,9 @@ static void read_string () {
 static inline bool alpha_und (char c) {
   return ('A'<=c && c<='Z') || ('a'<=c && c<='z') || c=='_';
 }
-
 static inline bool numeric (char c) {
   return ('0'<=c && c<='9');
 }
-
 static void read_id () {
   if (!ignore_whitespace) skip_whitespace();
   test_flag=true;
