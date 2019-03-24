@@ -99,14 +99,15 @@ multiple_optionals =
   {'test_flag=at_least_one;}while(0);'}
   ;
 %% Second level expressions (common directives level)
+comment = '%' *.neq(10);
 exp3 = .id {grammar_name'_'$'();'}
      | .string {'read_literal('$');'}
      | builtin_tokens
      | user_tokens
-     | '(' exp1 ')'
+     | '(' exp1 .expect('a close parenthesis') ')'
      | '.e' {'test_flag=true;'}
-     | '*' {'do{'} exp3 {'}while(test_flag);test_flag=true;'}
-     | '!' {'{long entry_pos=pos;'} exp3 {'pos=entry_pos;};test_flag=!test_flag;'}
+     | '*' {'do{'} .expect('an expression') exp3 {'}while(test_flag);test_flag=true;'}
+     | '!' {'{long entry_pos=pos;'} .expect('an expression') exp3 {'pos=entry_pos;};test_flag=!test_flag;'}
      | multiple_optionals;
 dont_use_flag = user_token_delim
               | output
@@ -114,11 +115,13 @@ dont_use_flag = user_token_delim
               | errors
               | user_vars;
 lookup_body = dont_use_flag | exp3 {'if(!test_flag)pos=entry_pos;'};
-lookup_extension = '&' {'if(test_flag){'} lookup_body {'}'};
+lookup_extension = '&' {'if(test_flag){'} .expect('an expression') lookup_body {'}'};
 tested_exp3 = exp3 {'error_if_false();'};
 followed_body = dont_use_flag | tested_exp3;
 if_lookup_ok = !(';'|'|'|')') {'if(test_flag){'} *followed_body {'}'} | .e;
-no_lookup = '.force' *dont_use_flag tested_exp3 *followed_body;
+no_lookup = '.force' *dont_use_flag
+            .expect('a recognizer expression') tested_exp3
+            *followed_body;
 exp3_seq = !(';'|'|'|')') {'{long entry_pos=pos;'} exp3
            (lookup_extension *lookup_extension | .e {'(void)entry_pos;'})
            if_lookup_ok {'}'};
@@ -127,12 +130,12 @@ exp2 = dont_use_flag *dont_use_flag (no_lookup | exp3_seq | .e)
      | exp3_seq;
 exp1 = 'continue' .success
      | {'do{'}
-       .expect('a sequence of expressions') exp2
+       .expect('a sequence of expressions') exp2 *comment
        *('|' {'if(test_flag)break;'}
-         .expect('a sequence of expressions') exp2)
+         .expect('a sequence of expressions') exp2 *comment)
        {'}while(0);'};
 %% First level expressions
-stat = '%' *.neq(10)
+stat = comment
      | .expect('a grammar rule identifier') .id
          {'static void 'grammar_name'_'$'(void)'
           '{enter_parse_rule("'grammar_name'_'$'");'}
@@ -143,7 +146,7 @@ stat = '%' *.neq(10)
 init_expr = .string {%}
           | .id {'static void 'grammar_name'_'$'(void);'}
           | !';' {'static '} user_vars;
-initialize = '%' *.neq(10) initialize
+initialize = comment initialize
            | '.initialize'
              .expect('a sequence of code instructions (strings, grammar rule mentions or vars)')
              init_expr *init_expr
