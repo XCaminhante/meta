@@ -115,11 +115,12 @@ dont_use_flag = user_token_delim
               | errors
               | user_vars;
 exp2 = *dont_use_flag
-       ( {'{long entry_pos=pos;(void)entry_pos;'}
-         exp3
-         *('&' {'if(test_flag){'}
-           ( dont_use_flag {'}'}
-           | exp3 {'if(!test_flag)pos=entry_pos;}'}) )
+       ( ('.force' {'{test_flag=true;'}
+         | {'{long entry_pos=pos;(void)entry_pos;'}
+           exp3
+           *('&' {'if(test_flag){'}
+             ( dont_use_flag {'}'}
+             | exp3 {'if(!test_flag)pos=entry_pos;}'}) ) )
          ( !(';'|'|'|')') {'if(test_flag){'}
            *(dont_use_flag | exp3 {'error_if_false();'})
            {'}'}
@@ -170,9 +171,9 @@ finalize = .expect('a compiler mode directive (.end,.multiple,.test,.finalize)')
              .expect('a sequence of code instructions (strings, grammar rule mentions or vars)')
              final_expr *final_expr )
            .expect('a ; terminator') ';' ;
-program = '.syntax'
-            .expect('a grammar name') .space .id .set(grammar_name)
-            .expect('a ; terminator or the path to support.h')
+program = .expect('a .syntax directive') .force '.syntax'
+          .expect('a grammar name') .space .id .set(grammar_name)
+          .expect('a ; terminator or the path to support.h')
             (.string {'#include "'%'/support.h"\n'} | .e {'#include "support.h"\n'}) ';'
           initialize
           *stat

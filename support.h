@@ -137,6 +137,9 @@ static void read_literal (const char *literal) {
     if (source[pos+i] == '\n') {
       new_last_line=pos+i+1;
       new_lines++; }}
+  if (literal[i]!='\0') {
+    test_flag=false;
+    return; }
   pos_last_line = new_last_line; line += new_lines; pos += i;
   make_token(pos-i);
 }
