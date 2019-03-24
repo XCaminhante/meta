@@ -350,7 +350,7 @@ static void multiple_files (int argc, char *argv[], char* extension, void(*func)
 }
 static int test (int source_len, void(*func)()) {
   source=malloc(source_len+1);
-  int chars=read(0,source,source_len);
+  int chars=read(STDIN_FILENO,source,source_len);
   input_len=chars;
   source[chars]='\0';
   output=stdout;
