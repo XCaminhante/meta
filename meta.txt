@@ -51,9 +51,8 @@ user_tokens = '.any(' {'read_any_between('} user_token_arg ','{','} user_token_a
 %%% Error handling
 errors = '.error(' .string {'error('$');'} ')'
        | '.warn(' .string {'warning('$');'} ')'
-       | '.expect(' .string {'expecting='$';unexpected=NULL;'} ')'
-       | '.unexpect(' .string {'expecting=NULL;unexpected='$';'} ')'
-       | '.noexpect' {'expecting=NULL;unexpected=NULL;'}
+       | '.expect(' {'expecting='} ( .string {$';'} | .e {'NULL;'} ) ')'
+       | '.unexpect(' {'unexpected='} ( .string {$';'} | .e {'NULL;'} ) ')'
        | '.reason(' .string {'reason='$';'} ')'
        | '.noreason' {'reason=NULL;'}
        | '.failure' {'test_flag=false;exit_parse_rule();return;'}
@@ -107,26 +106,25 @@ exp3 = .id {grammar_name'_'$'();'}
      | '(' exp1 ')'
      | '.e' {'test_flag=true;'}
      | '*' {'do{'} exp3 {'}while(test_flag);test_flag=true;'}
-     | '!' {'do{long entry_pos=pos;'} exp3 {'pos=entry_pos;}while(0);test_flag=!test_flag;'}
+     | '!' {'{long entry_pos=pos;'} exp3 {'pos=entry_pos;};test_flag=!test_flag;'}
      | multiple_optionals;
 dont_use_flag = user_token_delim
               | output
               | space_control
               | errors
               | user_vars;
-exp2 = *dont_use_flag
-       ( ('.force' {'{test_flag=true;'}
-         | {'{long entry_pos=pos;(void)entry_pos;'}
-           exp3
-           *('&' {'if(test_flag){'}
-             ( dont_use_flag {'}'}
-             | exp3 {'if(!test_flag)pos=entry_pos;}'}) ) )
-         ( !(';'|'|'|')') {'if(test_flag){'}
-           *(dont_use_flag | exp3 {'error_if_false();'})
-           {'}'}
-         | .e)
-         {'}'}
-       | .e);
+lookup_body = dont_use_flag | exp3 {'if(!test_flag)pos=entry_pos;'};
+lookup_extension = '&' {'if(test_flag){'} lookup_body {'}'};
+tested_exp3 = exp3 {'error_if_false();'};
+followed_body = dont_use_flag | tested_exp3;
+if_lookup_ok = !(';'|'|'|')') {'if(test_flag){'} *followed_body {'}'} | .e;
+no_lookup = '.force' *dont_use_flag tested_exp3 *followed_body;
+exp3_seq = !(';'|'|'|')') {'{long entry_pos=pos;'} exp3
+           (lookup_extension *lookup_extension | .e {'(void)entry_pos;'})
+           if_lookup_ok {'}'};
+exp2 = dont_use_flag *dont_use_flag (no_lookup | exp3_seq | .e)
+     | no_lookup
+     | exp3_seq;
 exp1 = 'continue' .success
      | {'do{'}
        .expect('a sequence of expressions') exp2
@@ -173,7 +171,7 @@ finalize = .expect('a compiler mode directive (.end,.multiple,.test,.finalize)')
            .expect('a ; terminator') ';' ;
 program = .expect('a .syntax directive') .force '.syntax'
           .expect('a grammar name') .space .id .set(grammar_name)
-          .expect('a ; terminator or the path to support.h')
+          .expect('a ; terminator (optionally, the path to a support.h file)')
             (.string {'#include "'%'/support.h"\n'} | .e {'#include "support.h"\n'}) ';'
           initialize
           *stat
