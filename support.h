@@ -141,29 +141,19 @@ static void read_literal (const char *literal) {
   make_token(pos-i);
 }
 static void read_string () {
-  int entry_pos;
   if (!ignore_whitespace) skip_whitespace();
-  entry_pos=pos;
-  if (pos<input_len && ( source[pos] == '\'' || source[pos] == '"')) {
-    pos++; }
-  else {
+  test_flag=true;
+  if (!(pos<input_len && (source[pos] == '\'' || source[pos] == '"'))) {
     test_flag=false;
     return; }
-  while (pos<input_len && source[pos] != source[entry_pos]) {
-    switch (source[pos]) {
-      case '\n':
-        start_line();
-      break;
-      case '\\':
-        pos++; }
-    pos++; }
-  if (source[pos] == source[entry_pos]) {
-    pos++;
-    test_flag=true;
-    make_token(entry_pos); }
-  else {
-    pos=entry_pos;
-    test_flag=false; }
+  long new_last_line=pos_last_line, new_lines=0, i=1;
+  for (; (pos+i)<input_len && source[pos+i] != source[pos]; i++) {
+    switch (source[pos+i]) {
+      case '\n': new_last_line=pos+i+1; new_lines++; break;
+      case '\\': i++; }}
+  pos += ++i;
+  pos_last_line = new_last_line; line += new_lines;
+  make_token(pos-i);
 }
 static inline bool alpha_und (char c) {
   return ('A'<=c && c<='Z') || ('a'<=c && c<='z') || c=='_';

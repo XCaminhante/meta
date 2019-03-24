@@ -12,7 +12,7 @@ all: $(bins)
 $(ccode): $(grammars)
 	./meta $< $@
 
-meta2.c: meta.txt
+meta2.c: meta.txt support.h
 	./meta meta.txt meta2.c
 
 meta3.c: meta2
