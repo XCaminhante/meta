@@ -9,7 +9,7 @@ all: $(bins)
 
 %: %.c
 
-$(ccode): $(grammars)
+$(ccode): $(grammars) meta
 	./meta $< $@
 
 meta2.c: meta.txt support.h
