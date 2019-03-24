@@ -220,24 +220,16 @@ static void read_char_neq (char which) {
   test_flag=false;
 }
 static void initialize_parser () {
-  if (output) {
-    fclose(output);
-    output=NULL; }
-  if (token) {
-    free(token);
-    token=NULL; }
+  if (output) { fclose(output); output=NULL; }
+  if (token) { free(token); token=NULL; }
   if (output_name) {
     if ((char*)output_name != (char*)"stdout") free(output_name);
     output_name=NULL; }
   if (input_name) {
     if ((char*)input_name != (char*)"stdin") free(input_name);
     input_name=NULL; }
-  if (source) {
-    free(source);
-    source=NULL; }
-  if (capture) {
-    free(capture);
-    capture=NULL; }
+  if (source) { free(source); source=NULL; }
+  if (capture) { free(capture); capture=NULL; }
   parse_stack_top=0; utoken_stack_top=0;
   pos=0; pos_last_line=0; line=1;
   test_flag=false; ignore_whitespace=false; mute=false;
