@@ -144,7 +144,7 @@ stat = comment
        .expect('a ; terminator') ';'
        {'exit_parse_rule();}\n'};
 on_error = '.on_error'
-           .expect('a grammar rule identifier') .id <'error_handler=token;token=NULL;'>
+           .expect('a grammar rule identifier') .id .set(error_handler)
            .expect('a ; terminator') ';';
 init_expr = .string {%}
           | .id {'static void 'grammar_name'_'$'(void);'}
