@@ -27,6 +27,8 @@ static char *expecting=NULL, *unexpected=NULL, *reason=NULL;
 static void make_token (int start_pos);
 static void no_unused_fwa ();
 
+static void(*on_error)(void) = NULL;
+
 static inline void start_line (void) {
   pos_last_line=pos+1;
   line++;
@@ -265,6 +267,10 @@ static void error (const char *msg) {
 }
 static void error_if_false () {
   if (!test_flag) {
+    if (on_error) {
+      on_error();
+      if(test_flag) return;
+      else finalize_parser(); }
     status_line();
     if (reason) {
       fputc('\n', stderr);
@@ -366,6 +372,7 @@ static void(*no_unused_fwa3[])() = { no_unused_fwa,
   multiple_files };
 static int(*no_unused_fwa4[])() = { first_into_second,test };
 static void no_unused_fwa () {
+  (void)&on_error;
   (void)&no_unused_fwa1;
   (void)&no_unused_fwa2;
   (void)&no_unused_fwa3;

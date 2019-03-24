@@ -2,7 +2,7 @@
 % MetaG metacompiler grammar
 .initialize
   exp1 exp3
-  .var(*grammar_name);
+  .var(*grammar_name) .var(*error_handler);
 % Token directives
 %% Variables descriptions
 var_descr = .token
@@ -121,7 +121,7 @@ followed_body = dont_use_flag | tested_exp3;
 if_lookup_ok = !(';'|'|'|')') {'if(test_flag){'} *followed_body {'}'} | .e;
 no_lookup = '.force' *dont_use_flag
             .expect('a recognizer expression') tested_exp3
-            *followed_body;
+            *(.expect('an expression') followed_body);
 exp3_seq = !(';'|'|'|')') {'{long entry_pos=pos;'} exp3
            (lookup_extension *lookup_extension | .e {'(void)entry_pos;'})
            if_lookup_ok {'}'};
@@ -143,40 +143,46 @@ stat = comment
        .expect('a sequence of expressions') exp1
        .expect('a ; terminator') ';'
        {'exit_parse_rule();}\n'};
+on_error = '.on_error'
+           .expect('a grammar rule identifier') .id <'error_handler=token;token=NULL;'>
+           .expect('a ; terminator') ';';
 init_expr = .string {%}
           | .id {'static void 'grammar_name'_'$'(void);'}
           | !';' {'static '} user_vars;
-initialize = comment initialize
-           | '.initialize'
+initialize = '.initialize'
              .expect('a sequence of code instructions (strings, grammar rule mentions or vars)')
              init_expr *init_expr
-             .expect('a ; terminator')
-             ';'
-           | .e;
+             .expect('a ; terminator') ';';
 final_expr = .string {%}
            | .id {grammar_name'_'$'();'}
            | !';' {'static '} user_vars;
 finalize = .expect('a compiler mode directive (.end,.multiple,.test,.finalize)')
+           {'int main(int argc,char *argv[]){'}
+           <'if(error_handler!=NULL){'> {'on_error='grammar_name'_'error_handler';'} <'}'>
            ( '.end'
              .expect('a grammar rule identifier') .id
-             {'int main(int argc,char *argv[]){(void)argc,(void)argv;return first_into_second(argc,argv,'grammar_name'_'$');}\n'}
+             {'(void)argc,(void)argv;'
+              'return first_into_second(argc,argv,'grammar_name'_'$');'}
            | '.multiple'
-             .expect('an file extension (string)') .string .bind(extension)
+             .expect('a file extension (string)') .string .bind(extension)
              .expect('a grammar rule identifier') .id
-             {'int main(int argc,char *argv[]){(void)argc,(void)argv;multiple_files(argc,argv,'extension','grammar_name'_'$');return 0;}\n' }
+             {'(void)argc,(void)argv;'
+              'multiple_files(argc,argv,'extension','grammar_name'_'$');return 0;' }
            | '.test'
              .expect('a grammar rule identifier (optionally a maximum input size)') .id .bind(func_name)
              .var(*max_input_size) (.number .set(max_input_size) | .e)
-             {'int main (int argc,char *argv[]){(void)argc,(void)argv;return test('}.ifte(max_input_size,"4194304"){','grammar_name'_'func_name');}\n'}
+             {'(void)argc,(void)argv;'
+              'return test('}.ifte(max_input_size,"4194304"){','grammar_name'_'func_name');'}
            | '.finalize'
              .expect('a sequence of code instructions (strings, grammar rule mentions or vars)')
              final_expr *final_expr )
+           {'}\n'}
            .expect('a ; terminator') ';' ;
 program = .expect('a .syntax directive') .force '.syntax'
           .expect('a grammar name') .space .id .set(grammar_name)
           .expect('a ; terminator (optionally, the path to a support.h file)')
             (.string {'#include "'%'/support.h"\n'} | .e {'#include "support.h"\n'}) ';'
-          initialize
+          ^initialize ^on_error ^comment ^.e
           *stat
           finalize;
 .end program;
