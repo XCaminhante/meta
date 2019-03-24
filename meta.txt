@@ -117,7 +117,9 @@ dont_use_flag = user_token_delim
 exp2 = *dont_use_flag
        ( {'{long entry_pos=pos;(void)entry_pos;'}
          exp3
-         *('&' {'if(test_flag){'} exp3 {'if(!test_flag)pos=entry_pos;}'})
+         *('&' {'if(test_flag){'}
+           ( dont_use_flag {'}'}
+           | exp3 {'if(!test_flag)pos=entry_pos;}'}) )
          ( !(';'|'|'|')') {'if(test_flag){'}
            *(dont_use_flag | exp3 {'error_if_false();'})
            {'}'}
