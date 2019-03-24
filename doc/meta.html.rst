@@ -4,8 +4,8 @@
 MetaG, compilador de compiladores
 #################################
 
-A documentação é lacônica; este é um projeto em desenvolvimento.
-Ainda há muito para aprimorar.
+A documentação é lacônica; projeto em desenvolvimento.
+Ainda há muito para aprimorar. Tudo escrito aqui pode estar errado.
 
 Introdução
 ++++++++++++
