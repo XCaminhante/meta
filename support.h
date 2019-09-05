@@ -37,6 +37,7 @@ static char* concatstr (char *txt, const char *concat) {
   int txtlen = strlen(txt),
       conclen = strlen(concat);
   char *newbuf = realloc(txt,txtlen+conclen+1);
+  if (newbuf == 0) return 0;
   strcpy(newbuf+txtlen,concat);
   return newbuf;
 }
