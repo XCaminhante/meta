@@ -1,4 +1,6 @@
-CFLAGS := -Os -D_FILE_OFFSET_BITS=64 -std=gnu99 -D_GNU_SOURCE -Wall -Wextra -pedantic -flto
+CFLAGS := -Os -D_FILE_OFFSET_BITS=64 -std=gnu99 -D_GNU_SOURCE -Wall -Wextra -pedantic
+
+.PHONY: bootstrap metacompile evolve clean
 
 all: evolve
 
