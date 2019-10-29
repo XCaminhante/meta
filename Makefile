@@ -1,15 +1,10 @@
 CFLAGS := -Os -D_FILE_OFFSET_BITS=64 -std=gnu99 -D_GNU_SOURCE -Wall -Wextra -pedantic -flto
 
-grammars := $(shell find . -maxdepth 1 \( -name '*.txt' -o -name '*.meta' \) | grep -v 'meta.txt')
-ccode := $(grammars:.txt=.c)
-ccode := $(ccode:.meta=.c)
-bins := $(ccode:.c=)
-
-all: $(bins)
+all: evolve
 
 %: %.c
 
-$(ccode): $(grammars) meta
+%.c: %.txt meta
 	./meta $< $@
 
 meta2.c: meta.txt support.h
@@ -32,4 +27,4 @@ evolve: metacompile
 	rm meta?.c meta? -f
 
 clean:
-	rm $(bins) $(ccode) meta? meta?.[co] -f
+	rm meta? meta?.[co] -f
