@@ -3,8 +3,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.14: http://docutils.sourceforge.net/" />
-<title>MetaG, compilador de compiladores</title>
+<meta name="generator" content="Docutils 0.15.2: http://docutils.sourceforge.net/" />
+<title>Meta, compilador de compiladores</title>
 <style type="text/css">
 
 /*
@@ -360,28 +360,28 @@ ul.auto-toc {
 </style>
 </head>
 <body>
-<div class="document" id="metag-compilador-de-compiladores">
-<h1 class="title">MetaG, compilador de compiladores</h1>
+<div class="document" id="meta-compilador-de-compiladores">
+<h1 class="title">Meta, compilador de compiladores</h1>
 
 <!-- rst3: filename: ./doc/meta.html -->
 <p>A documentação é lacônica; projeto em desenvolvimento.
 Ainda há muito para aprimorar. Tudo escrito aqui pode estar errado.</p>
 <div class="section" id="introducao">
 <h1>Introdução</h1>
-<div class="section" id="o-que-e-metag">
-<h2>O que é MetaG?</h2>
-<p>MetaG é um compilador de compiladores baseado em um trabalho anterior chamado Meta-II.
+<div class="section" id="o-que-e-meta">
+<h2>O que é Meta?</h2>
+<p>Meta é um compilador de compiladores baseado em um trabalho anterior chamado Meta-II.
 Existem alguns tutoriais na internet demonstrando como Meta-II funcionava.</p>
-<p>MetaG recebe uma gramática escrita em uma linguagem especial e produz código em C que implementa um parser/compilador para esta gramática.
-Este manual descreve como usar a linguagem de MetaG de forma prática.</p>
-<p>MetaG pode ser útil para criar preprocessadores para uma linguagem pré-existente, converter um formato de configuração em código executável, ou implementar uma linguagem. Na esperança que seja útil, este documento foi criado.</p>
+<p>Meta recebe uma gramática escrita em uma linguagem especial e produz código em C que implementa um parser/compilador para esta gramática.
+Este manual descreve como usar a linguagem de Meta de forma prática.</p>
+<p>Meta pode ser útil para criar preprocessadores para uma linguagem pré-existente, converter um formato de configuração em código executável, ou implementar uma linguagem. Na esperança que seja útil, este documento foi criado.</p>
 </div>
-<div class="section" id="como-usar-metag">
-<h2>Como usar MetaG?</h2>
-<p>MetaG é distribuído como um pequeno conjunto de arquivos.
-Há um cabeçalho C (support.h) com as funções mais fundamentais do compilador, e a gramática (meta.txt) que define o compilador MetaG.
-Também é distribuída a implementação de MetaG em C (meta.c).</p>
-<p>Para usar MetaG, você precisa realizar o processo de bootstrap. É simples, basta compilar a implementação em C:</p>
+<div class="section" id="como-usar-meta">
+<h2>Como usar Meta?</h2>
+<p>Meta é distribuído como um pequeno conjunto de arquivos.
+Há um cabeçalho C (support.h) com as funções mais fundamentais do compilador, e a gramática (meta.txt) que define o compilador Meta.
+Também é distribuída a implementação de Meta em C (meta.c).</p>
+<p>Para usar Meta, você precisa realizar o processo de bootstrap. É simples, basta compilar a implementação em C:</p>
 <pre class="literal-block">
 gcc meta.c -o meta
 </pre>
@@ -390,21 +390,21 @@ gcc meta.c -o meta
 ./meta gram.meta gram.c
 </pre>
 </div>
-<div class="section" id="como-modificar-metag">
-<h2>Como modificar MetaG?</h2>
-<p>MetaG é um metacompilador porque é escrito na mesma linguagem que ele implementa.
+<div class="section" id="como-modificar-meta">
+<h2>Como modificar Meta?</h2>
+<p>Meta é um metacompilador porque é escrito na mesma linguagem que ele implementa.
 Você pode modificar o compilador (meta.txt) e recompilar, criando um novo compilador baseado no anterior:</p>
 <pre class="literal-block">
 ./meta meta.txt meta2.c
 gcc meta2.c -o meta2
 </pre>
 <p>Se não acontecerem erros durante a compilação e testes da nova versão, você pode substituir a anterior pela nova.</p>
-<p>Pode parecer arbitrário que MetaG compile à si mesmo, mas isso é importante.
+<p>Pode parecer arbitrário que Meta compile à si mesmo, mas isso é importante.
 Metacompilar prova a expressividade e estabilidade da linguagem implementada pelo compilador.
-Metacompilar, portanto, é o teste mais básico para MetaG.</p>
+Metacompilar, portanto, é o teste mais básico para Meta.</p>
 <p>O teste da metacompilação é que o metacompilador possa produzir uma cópia idêntica de si mesmo.
 Eu digo que um metacompilador que passa neste teste é &quot;metacompilante&quot;.</p>
-<p>Com isso em mente, o ciclo de atualização ideal de MetaG funciona da seguinte maneira:</p>
+<p>Com isso em mente, o ciclo de atualização ideal de Meta funciona da seguinte maneira:</p>
 <pre class="literal-block">
 # Bootstrap da próxima iteração
 ./meta meta.txt meta2.c
@@ -426,29 +426,29 @@ make evolve
 </pre>
 </div>
 </div>
-<div class="section" id="linguagem-metag">
-<h1>Linguagem MetaG</h1>
-<p>A linguagem de MetaG é livremente inspirada em EBNF, com semântica PEG.
-MetaG constrói parsers recursivo-descendentes com predição ajustável e backtracking.</p>
-<p>MetaG foi pensado para aplicações práticas que precisem detalhar tokens byte por byte.
+<div class="section" id="linguagem-meta">
+<h1>Linguagem Meta</h1>
+<p>A linguagem de Meta é livremente inspirada em EBNF, com semântica PEG.
+Meta constrói parsers recursivo-descendentes com predição ajustável e backtracking.</p>
+<p>Meta foi pensado para aplicações práticas que precisem detalhar tokens byte por byte.
 Possui instruções para controle do espaço branco e definição de tokens customizados.</p>
-<p>Acima de tudo, a linguagem de MetaG processa texto.</p>
+<p>Acima de tudo, a linguagem de Meta processa texto.</p>
 <p>Para facilitar a leitura, tenha em mente:</p>
 <ul class="simple">
-<li>&quot;Metacompilador&quot; se refere ao MetaG</li>
+<li>&quot;Metacompilador&quot; se refere ao Meta</li>
 <li>&quot;Compilador&quot; se refere ao compilador construído à partir da gramática que o usuário criar.</li>
 </ul>
 <div class="section" id="convencoes-lexicas">
 <h2>Convenções léxicas</h2>
-<p>A gramática MetaG no alto nível é composta de regras de reconhecimento de padrões.</p>
+<p>A gramática Meta no alto nível é composta de regras de reconhecimento de padrões.</p>
 <p>Para instruir o metacompilador de forma detalhada existem diretivas de diferentes tipos.
 As diretivas são os elementos mais básicos da linguagem, com as quais são construídas todas as subexpressões.</p>
-<p>MetaG não faz exigência de identação, mas você pode usar livremente para facilitar a leitura.</p>
+<p>Meta não faz exigência de identação, mas você pode usar livremente para facilitar a leitura.</p>
 <div class="section" id="primeiros-passos">
 <h3>Primeiros passos</h3>
-<p>Toda construção de alto nível de MetaG termina com um ponto-e-vírgula.
+<p>Toda construção de alto nível de Meta termina com um ponto-e-vírgula.
 As subexpressões são separadas por espaço branco.</p>
-<p>Toda gramática MetaG começa com uma diretiva '.syntax', que dá o nome da gramática:</p>
+<p>Toda gramática Meta começa com uma diretiva '.syntax', que dá o nome da gramática:</p>
 <pre class="literal-block">
 .syntax my_grammar;
 </pre>
@@ -479,10 +479,10 @@ abc = 'abc' {'OK'};
 .test abc;
 </pre>
 <p>A diretiva de finalização &quot;.test&quot; faz o compilador esperar texto na entrada padrão do console (stdin), configura o estado inicial do compilador e chama a função definida para processar o texto recebido (neste caso é a regra &quot;abc&quot;).</p>
-<p>Por padrão, MetaG ignora todo o texto posterior ao que for reconhecido pela regra chamada. Então se você escrever &quot;abcdef&quot; na entrada do console, o compilador irá emitir &quot;OK&quot; e ignorar &quot;def&quot;.</p>
+<p>Por padrão, Meta ignora todo o texto posterior ao que for reconhecido pela regra chamada. Então se você escrever &quot;abcdef&quot; na entrada do console, o compilador irá emitir &quot;OK&quot; e ignorar &quot;def&quot;.</p>
 <div class="section" id="ordem-de-regras-de-reconhecimento">
 <h4>Ordem de regras de reconhecimento</h4>
-<p>Devido ao fato do código gerado ter uma correlação muito próxima com a linguagem de MetaG e o código emitido ser em C, você idealmente deve declarar suas regras algum momento antes de usa-las em outras, da mesma forma que deve definir suas funções em um momento anterior ao de usa-las em C.</p>
+<p>Devido ao fato do código gerado ter uma correlação muito próxima com a linguagem de Meta e o código emitido ser em C, você idealmente deve declarar suas regras algum momento antes de usa-las em outras, da mesma forma que deve definir suas funções em um momento anterior ao de usa-las em C.</p>
 <p>Caso precise usar uma regra antes do ponto onde ela é definida, use &quot;.initialize&quot; para declarar os protótipos das funções das regras. Isso será explicado mais à frente.</p>
 <p>Ou seja:</p>
 <pre class="literal-block">
