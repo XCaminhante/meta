@@ -6,17 +6,17 @@ all: evolve
 
 %: %.c
 
-%.c: %.txt meta
+%.c: %.meta meta
 	./meta $< $@
 
-meta2.c: meta.txt support.h
-	./meta meta.txt meta2.c
+meta2.c: meta.meta support.h
+	./meta meta.meta meta2.c
 
 meta3.c: meta2
-	./meta2 meta.txt meta3.c
+	./meta2 meta.meta meta3.c
 
 meta4.c: meta3
-	./meta3 meta.txt meta4.c
+	./meta3 meta.meta meta4.c
 
 bootstrap: meta2.c
 
