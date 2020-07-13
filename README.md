@@ -1,5 +1,4 @@
-
-MetaG, a straightforward compiler-compiler
+Meta, a straightforward compiler-compiler
 ==========================================
 
 This project is based on [META-II by Val Schorre](https://en.wikipedia.org/wiki/Compiler-compiler#META_II).
