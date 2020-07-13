@@ -3,9 +3,9 @@ Meta, a straightforward compiler-compiler
 
 This project is based on [META-II by Val Schorre](https://en.wikipedia.org/wiki/Compiler-compiler#META_II).
 
-MetaG generates C code implementing a parser/compiler for a EBNF-like grammar file.
+Meta generates C code implementing a parser/compiler for a EBNF-like grammar file.
 
-MetaG is written in itself so it needs to be bootstrapped from a C implementation.
+Meta is written in itself so it needs to be bootstrapped from a C implementation.
 
 ## Build and use
 
