@@ -1,5 +1,5 @@
 .syntax meta;
-% MetaG metacompiler grammar
+% Meta metacompiler grammar
 .initialize
   exp1 exp3
   .var(*grammar_name) .var(*error_handler);
